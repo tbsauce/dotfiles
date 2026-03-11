@@ -29,11 +29,6 @@ exec --no-startup-id export XDG_DATA_DIRS=/var/lib/flatpak/exports/share:/home/$
 # XDG autostart
 exec --no-startup-id dex-autostart --autostart --environment i3
 
-# Disable screen blanking / DPMS
-exec --no-startup-id xset s off
-exec --no-startup-id xset -dpms
-exec --no-startup-id xset s noblank
-
 # NetworkManager applet
 exec --no-startup-id nm-applet
 

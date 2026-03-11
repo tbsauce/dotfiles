@@ -7,7 +7,7 @@
     fg-col: #cad3f5;
     fg-col2: #ed8796;
     grey: #6e738d;
-    font: "JetBrainsMono Nerd Font 12";
+    font: "JetBrainsMono Nerd Font 18";
 }
 
 element-text, element-icon, mode-switcher {
@@ -16,7 +16,7 @@ element-text, element-icon, mode-switcher {
 }
 
 window {
-    width: 250px;
+    width: 200px;
     border: 2px;
     border-color: @border-col;
     background-color: @bg-col;
@@ -56,15 +56,17 @@ listview {
 }
 
 element {
-    padding: 10px 16px;
+    padding: 16px 0px;
     background-color: @bg-col;
     text-color: @fg-col;
-    border-radius: 6px;
+    border-radius: 8px;
+    orientation: vertical;
 }
 
 element-text {
     horizontal-align: 0.5;
     vertical-align: 0.5;
+    expand: true;
     background-color: inherit;
     text-color: inherit;
 }

@@ -3,6 +3,8 @@
 palette = "catppuccin_macchiato"
 
 format = """
+$line_break\
+[╭─ ](overlay0)\
 $directory\
 $git_branch\
 $git_status\
@@ -12,26 +14,26 @@ $character"""
 
 [directory]
 style = "bold lavender"
-format = "$path"
+format = "[$path](bold lavender) "
 truncation_length = 0
 
 [git_branch]
-symbol = " "
-style = "bold green"
-format = " $symbol$branch"
+symbol = ""
+style = "bold mauve"
+format = "[on](overlay1) [$symbol $branch](bold mauve)"
 
 [git_status]
-style = "bold green"
-format = " $all_status$ahead_behind"
+style = "bold yellow"
+format = " [$all_status$ahead_behind](bold yellow)"
 
 [cmd_duration]
 min_time = 2_000
-style = "bold yellow"
-format = " 󰔟 $duration"
+style = "bold peach"
+format = " [󰔟 $duration](bold peach)"
 
 [character]
-success_symbol = "[❯](green)"
-error_symbol = "[❯](red)"
+success_symbol = "[╰─ ❯](overlay0)"
+error_symbol = "[╰─ ❯](red)"
 
 [palettes.catppuccin_macchiato]
 rosewater = "#f4dbd6"

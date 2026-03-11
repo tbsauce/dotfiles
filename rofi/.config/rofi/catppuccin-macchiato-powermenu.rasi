@@ -7,7 +7,7 @@
     fg-col: #cad3f5;
     fg-col2: #ed8796;
     grey: #6e738d;
-    font: "JetBrainsMono Nerd Font 14";
+    font: "JetBrainsMono Nerd Font 26";
 }
 
 element-text, element-icon, mode-switcher {
@@ -16,12 +16,12 @@ element-text, element-icon, mode-switcher {
 }
 
 window {
-    width: 500px;
+    width: 520px;
     border: 2px;
     border-color: @border-col;
     background-color: @bg-col;
     border-radius: 8px;
-    padding: 20px;
+    padding: 24px;
     location: center;
     anchor: center;
 }
@@ -37,24 +37,27 @@ inputbar {
 listview {
     columns: 5;
     lines: 1;
-    spacing: 12px;
+    spacing: 16px;
     cycle: true;
     dynamic: true;
     layout: vertical;
+    fixed-height: true;
+    fixed-columns: true;
     background-color: @bg-col;
 }
 
 element {
-    padding: 16px 8px;
+    padding: 22px 0px;
     background-color: @bg-col;
     text-color: @fg-col;
-    border-radius: 8px;
+    border-radius: 12px;
     orientation: vertical;
 }
 
 element-text {
     horizontal-align: 0.5;
     vertical-align: 0.5;
+    expand: true;
     background-color: inherit;
     text-color: inherit;
 }
@@ -64,5 +67,5 @@ element selected {
     text-color: @blue;
     border: 2px;
     border-color: @blue;
-    border-radius: 8px;
+    border-radius: 12px;
 }
