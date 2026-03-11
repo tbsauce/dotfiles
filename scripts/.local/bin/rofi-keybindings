@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Show all i3 keybindings in a rofi window (read-only)
+
+CONFIG="$HOME/.config/i3/config"
+
+grep -E '^\s*bindsym' "$CONFIG" | \
+    sed 's/^\s*bindsym\s\+//' | \
+    sed 's/--no-startup-id //' | \
+    sed 's/exec //' | \
+    rofi -dmenu -theme catppuccin-macchiato -p "Keybindings" -i -no-custom

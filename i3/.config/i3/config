@@ -46,6 +46,9 @@ exec_always --no-startup-id picom --config ~/.config/picom/picom.conf
 # Dunst notification daemon
 exec --no-startup-id dunst
 
+# Auto-lock on suspend/lid close
+exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lockscreen
+
 # Volume controls (PulseAudio)
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
@@ -72,6 +75,18 @@ bindsym $mod+d exec --no-startup-id rofi -show drun
 bindsym Print exec --no-startup-id flameshot gui
 bindsym Shift+Print exec --no-startup-id flameshot full -p ~/Pictures
 bindsym Ctrl+Print exec --no-startup-id flameshot gui -c
+
+# Lock screen
+bindsym $mod+Escape exec --no-startup-id ~/.local/bin/lockscreen
+
+# Power menu (rofi)
+bindsym $mod+Shift+p exec --no-startup-id ~/.local/bin/rofi-powermenu
+
+# Display layout menu (rofi)
+bindsym $mod+p exec --no-startup-id ~/.local/bin/rofi-displaymenu
+
+# Keybindings hint
+bindsym $mod+Shift+slash exec --no-startup-id ~/.local/bin/rofi-keybindings
 
 # Change focus (vim keys)
 bindsym $mod+h focus left
@@ -187,6 +202,3 @@ default_border pixel 2
 default_floating_border pixel 2
 gaps inner 6
 gaps outer 2
-
-# HDMI mirroring
-exec_always --no-startup-id xrandr --output HDMI-A-0 --mode 1920x1080 --same-as eDP

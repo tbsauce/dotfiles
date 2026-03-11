@@ -3,59 +3,35 @@
 palette = "catppuccin_macchiato"
 
 format = """
-[](blue)\
-$os\
-$username\
-[](bg:lavender fg:blue)\
 $directory\
-[](fg:lavender bg:green)\
 $git_branch\
 $git_status\
-[](fg:green bg:yellow)\
 $cmd_duration\
-[](fg:yellow)\
-$fill\
 $line_break\
 $character"""
 
-[os]
-disabled = false
-style = "bg:blue fg:crust"
-
-[os.symbols]
-Fedora = " "
-
-[username]
-show_always = false
-style_user = "bg:blue fg:crust"
-format = "[$user ]($style)"
-
 [directory]
-style = "bg:lavender fg:crust"
-format = "[ $path ]($style)"
-truncation_length = 3
-truncation_symbol = "…/"
+style = "bold lavender"
+format = "$path"
+truncation_length = 0
 
 [git_branch]
 symbol = " "
-style = "bg:green fg:crust"
-format = "[ $symbol$branch ]($style)"
+style = "bold green"
+format = " $symbol$branch"
 
 [git_status]
-style = "bg:green fg:crust"
-format = "[$all_status$ahead_behind ]($style)"
+style = "bold green"
+format = " $all_status$ahead_behind"
 
 [cmd_duration]
 min_time = 2_000
-style = "bg:yellow fg:crust"
-format = "[ 󰔟 $duration ]($style)"
+style = "bold yellow"
+format = " 󰔟 $duration"
 
 [character]
 success_symbol = "[❯](green)"
 error_symbol = "[❯](red)"
-
-[fill]
-symbol = " "
 
 [palettes.catppuccin_macchiato]
 rosewater = "#f4dbd6"

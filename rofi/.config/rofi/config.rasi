@@ -2,10 +2,11 @@ configuration {
     modi: "drun,run,window";
     show-icons: true;
     icon-theme: "Papirus-Dark";
-    display-drun: " Apps";
-    display-run: " Run";
-    display-window: " Windows";
+    display-drun: "";
+    display-run: "";
+    display-window: "";
     drun-display-format: "{name}";
+    placeholder: "Type to search...";
 }
 
 @theme "catppuccin-macchiato"

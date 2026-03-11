@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Pixelated screenshot lock screen via ImageMagick + i3lock
+
+TMPIMG="/tmp/lockscreen-$$.png"
+
+# Take screenshot, pixelate it, and lock
+if import -window root "$TMPIMG" && \
+   convert "$TMPIMG" -scale 10% -scale 1000% "$TMPIMG"; then
+    i3lock -i "$TMPIMG"
+    rm -f "$TMPIMG"
+else
+    # Fallback: solid Catppuccin base color
+    rm -f "$TMPIMG"
+    i3lock -c 24273a
+fi

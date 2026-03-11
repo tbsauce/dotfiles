@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Rofi power/session menu with Nerd Font icons
+
+LOCK="󰌾  Lock"
+LOGOUT="󰍃  Logout"
+SUSPEND="󰤄  Suspend"
+REBOOT="󰜉  Reboot"
+SHUTDOWN="  Shutdown"
+
+chosen=$(printf "%s\n%s\n%s\n%s\n%s" "$LOCK" "$LOGOUT" "$SUSPEND" "$REBOOT" "$SHUTDOWN" | \
+    rofi -dmenu -theme catppuccin-macchiato-powermenu -p "Power" -selected-row 0)
+
+[ -z "$chosen" ] && exit 0
+
+confirm_action() {
+    local ans
+    ans=$(printf "No\nYes" | \
+        rofi -dmenu -theme catppuccin-macchiato-confirm -p "Confirm" -mesg "Are you sure?")
+    [ "$ans" = "Yes" ]
+}
+
+case "$chosen" in
+    "$LOCK")
+        ~/.local/bin/lockscreen
+        ;;
+    "$LOGOUT")
+        confirm_action && i3-msg exit
+        ;;
+    "$SUSPEND")
+        confirm_action && systemctl suspend
+        ;;
+    "$REBOOT")
+        confirm_action && systemctl reboot
+        ;;
+    "$SHUTDOWN")
+        confirm_action && systemctl poweroff
+        ;;
+esac

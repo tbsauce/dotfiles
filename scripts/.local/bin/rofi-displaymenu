@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Rofi display layout picker — detects monitors via xrandr
+
+LAPTOP=$(xrandr --query | grep -w "connected" | grep -i "eDP" | awk '{print $1}')
+EXTERNAL=$(xrandr --query | grep -w "connected" | grep -iv "eDP" | awk '{print $1}')
+
+if [ -z "$EXTERNAL" ]; then
+    notify-send "Display Menu" "No external display detected." -i display
+    exit 0
+fi
+
+MIRROR="󰍺  Mirror"
+EXTEND_R="󰁔  Extend right"
+EXTEND_L="󰁍  Extend left"
+EXT_ONLY="󰍹  External only"
+LAP_ONLY="󰌢  Laptop only"
+
+chosen=$(printf "%s\n%s\n%s\n%s\n%s" "$MIRROR" "$EXTEND_R" "$EXTEND_L" "$EXT_ONLY" "$LAP_ONLY" | \
+    rofi -dmenu -theme catppuccin-macchiato-powermenu -p "Display")
+
+[ -z "$chosen" ] && exit 0
+
+case "$chosen" in
+    "$MIRROR")
+        xrandr --output "$EXTERNAL" --auto --same-as "$LAPTOP"
+        ;;
+    "$EXTEND_R")
+        xrandr --output "$EXTERNAL" --auto --right-of "$LAPTOP"
+        ;;
+    "$EXTEND_L")
+        xrandr --output "$EXTERNAL" --auto --left-of "$LAPTOP"
+        ;;
+    "$EXT_ONLY")
+        xrandr --output "$LAPTOP" --off --output "$EXTERNAL" --auto
+        ;;
+    "$LAP_ONLY")
+        xrandr --output "$EXTERNAL" --off --output "$LAPTOP" --auto
+        ;;
+esac
+
+# Restart polybar after layout change
+~/.config/polybar/launch.sh &

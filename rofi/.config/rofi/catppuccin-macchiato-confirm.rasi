@@ -7,22 +7,23 @@
     fg-col: #cad3f5;
     fg-col2: #ed8796;
     grey: #6e738d;
-    width: 600;
     font: "JetBrainsMono Nerd Font 12";
 }
 
-element-text, element-icon , mode-switcher {
+element-text, element-icon, mode-switcher {
     background-color: inherit;
     text-color:       inherit;
 }
 
 window {
-    height: 360px;
+    width: 250px;
     border: 2px;
     border-color: @border-col;
     background-color: @bg-col;
     border-radius: 8px;
-    padding: 8px;
+    padding: 16px;
+    location: center;
+    anchor: center;
 }
 
 mainbox {
@@ -30,55 +31,48 @@ mainbox {
 }
 
 inputbar {
-    children: [entry];
-    background-color: @bg-col;
-    border-radius: 0px;
-    padding: 8px 0px;
-    border: 0px 0px 1px 0px;
-    border-color: @bg-col-light;
-}
-
-prompt {
     enabled: false;
 }
 
-textbox-prompt-colon {
-    expand: false;
-    str: ":";
+message {
+    background-color: @bg-col;
+    padding: 0px 0px 12px;
 }
 
-entry {
-    padding: 10px 20px;
-    margin: 0px;
-    text-color: @fg-col;
+textbox {
     background-color: @bg-col;
-    placeholder: "Type to search...";
-    placeholder-color: @grey;
+    text-color: @fg-col;
+    horizontal-align: 0.5;
 }
 
 listview {
-    border: 0px 0px 0px;
-    padding: 8px 0px 0px;
-    margin: 4px 0px 0px 12px;
-    columns: 1;
-    lines: 5;
-    spacing: 4px;
+    columns: 2;
+    lines: 1;
+    spacing: 12px;
+    cycle: true;
+    dynamic: true;
+    layout: vertical;
     background-color: @bg-col;
 }
 
 element {
-    padding: 8px;
+    padding: 10px 16px;
     background-color: @bg-col;
     text-color: @fg-col;
     border-radius: 6px;
 }
 
-element-icon {
-    size: 25px;
+element-text {
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    background-color: inherit;
+    text-color: inherit;
 }
 
 element selected {
     background-color: @selected-col;
     text-color: @fg-col2;
+    border: 2px;
+    border-color: @fg-col2;
     border-radius: 6px;
 }
