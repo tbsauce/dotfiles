@@ -26,6 +26,11 @@ set $mauve    #c6a0f6
 # XDG data dirs for flatpak
 exec --no-startup-id export XDG_DATA_DIRS=/var/lib/flatpak/exports/share:/home/$USER/.local/share/flatpak/exports/share:/usr/local/share:/usr/share
 
+# Cursor theme (dconf + Xresources)
+exec --no-startup-id gsettings set org.gnome.desktop.interface cursor-theme 'catppuccin-macchiato-dark-cursors'
+exec --no-startup-id gsettings set org.gnome.desktop.interface cursor-size 24
+exec --no-startup-id xrdb -merge ~/.Xresources
+
 # XDG autostart
 exec --no-startup-id dex-autostart --autostart --environment i3
 
@@ -34,6 +39,9 @@ exec --no-startup-id nm-applet
 
 # Polybar
 exec_always --no-startup-id ~/.config/polybar/launch.sh
+
+# Wallpaper
+exec_always --no-startup-id feh --bg-fill ~/Pictures/Wallpapers/1.jpg
 
 # Picom compositor
 exec_always --no-startup-id picom --config ~/.config/picom/picom.conf
