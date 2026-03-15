@@ -1,0 +1,43 @@
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.secret
+credentials.json
+secrets.json
+token.json
+
+# API keys
+.api_key
+*.api_key
+.token
+.credentials
+
+# SSH / GPG
+.ssh/
+.gnupg/
+
+# Password stores
+.password-store/
+
+# Browser profiles
+.mozilla/
+.config/chromium/
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Compiled / cache
+__pycache__/
+*.pyc
+node_modules/
+.cache/

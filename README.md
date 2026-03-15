@@ -18,6 +18,7 @@ My personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/)
 | `flameshot` | [flameshot](https://github.com/flameshot-org/flameshot) | Screenshot tool |
 | `gtk` | GTK 3 | Catppuccin theme, Papirus-Dark icons, Catppuccin cursors |
 | `scripts` | — | Custom scripts: `lockscreen`, `rofi-powermenu`, `rofi-displaymenu`, `rofi-keybindings` |
+| `xresources` | Xresources | X resources — cursor theme and size for X clients |
 
 ### Terminal & Shell
 
@@ -205,3 +206,86 @@ for dir in */; do stow "$dir"; done
 # Set zsh as default shell
 chsh -s $(which zsh)
 ```
+
+## Troubleshooting
+
+### Polybar not starting
+
+- Check `/tmp/polybar.log` for errors
+- Verify font: `fc-list | grep -i "JetBrainsMono Nerd"`
+- Manual restart: `killall polybar && ~/.config/polybar/launch.sh`
+- If hardware modules fail (battery, backlight), comment them out in `modules-right` in config.ini
+
+### Picom glitches or screen tearing
+
+- Default backend is `glx` — try `xrender` if you see artifacts
+- Debug: `picom --config ~/.config/picom/picom.conf --log-level debug`
+- Disable blur (comment `blur-method`) if performance drops
+- AMD GPU drivers: `sudo dnf install mesa-dri-drivers xorg-x11-drv-amdgpu`
+
+### Display layout / multi-monitor
+
+- `xrandr --query` to see connected outputs
+- `$mod+p` opens the display layout menu (rofi-displaymenu)
+- The script auto-detects laptop (eDP) vs external displays
+- Polybar restarts automatically after display change
+
+### Audio not working
+
+- Fedora 43 uses PipeWire with PulseAudio compatibility
+- Check sink: `pactl list sinks short`
+- Check service: `systemctl --user status pipewire pipewire-pulse`
+- Test volume: `pactl set-sink-volume @DEFAULT_SINK@ 100%`
+
+### Fonts showing boxes or missing icons
+
+- Confirm install: `fc-list | grep "JetBrainsMono Nerd"`
+- Reinstall: `unzip JetBrainsMono.zip -d ~/.local/share/fonts/JetBrainsMono/ && fc-cache -fv`
+- All configs reference `JetBrainsMono Nerd Font` — the name must match exactly
+
+### GTK theme not applying
+
+- Theme goes in `~/.themes/`, cursors in `~/.icons/`
+- Verify: `gsettings list-recursively org.gnome.desktop.interface | grep -E "theme|cursor"`
+- GTK4 apps have limited theming support — only cursor theme set in gtk-4.0/settings.ini
+
+### Lock screen fails
+
+- Requires `i3lock` and `imagemagick` (`import` + `convert` commands)
+- Test manually: `~/.local/bin/lockscreen`
+- Falls back to solid color (#24273a) if screenshot capture fails
+- Auto-lock on suspend handled by `xss-lock`
+
+### Stow conflicts during deploy
+
+- A conflict means a real file exists where stow wants to place a symlink
+- Back up the file, remove it, then re-run `stow <package>`
+- Or use `stow --adopt <package>` to pull existing files into the repo
+
+### Notifications not appearing
+
+- Check dunst is running: `pgrep dunst`
+- Start manually: `dunst &`
+- Test: `notify-send "test" "hello"`
+
+### Zsh plugin errors on startup
+
+- Install missing plugins: `sudo dnf install zsh-autosuggestions zsh-syntax-highlighting`
+- Both are sourced from `/usr/share/` in `.zshrc`
+
+## Useful Paths
+
+| What | Path |
+|------|------|
+| Dotfiles repo | `~/dotfiles` |
+| Wallpaper | `~/Pictures/Wallpapers/1.jpg` |
+| Screenshots | `~/Pictures` |
+| Custom scripts | `~/.local/bin/` |
+| Fonts | `~/.local/share/fonts/JetBrainsMono/` |
+| GTK theme | `~/.themes/` |
+| Cursors | `~/.icons/catppuccin-macchiato-dark-cursors/` |
+| Polybar log | `/tmp/polybar.log` |
+| Xorg log | `/var/log/Xorg.0.log` |
+| System journal | `journalctl -b` |
+| Brightness sysfs | `/sys/class/backlight/amdgpu_bl1/brightness` |
+| Battery sysfs | `/sys/class/power_supply/BAT0/` |
