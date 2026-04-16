@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-04-16 — Move portable rules out of auto-memory into repo
+
+**What:** Consolidated 4 feedback rules + user profile into a single committed file; removed their auto-memory copies. Machine-specific memory (debug, security) stays in auto-memory.
+
+**Files changed:**
+- `.claude/preferences.md` — new; contains user profile + 4 rules (ask before executing, incremental logging, keep work in dotfiles, no Co-Authored-By)
+- `CLAUDE.md` — added top-level pointer telling Claude to read `.claude/preferences.md` each session
+- Auto-memory: deleted `feedback_no_coauthor.md`, `feedback_incremental_logging.md`, `feedback_ask_before_executing.md`, `feedback_keep_work_in_dotfiles.md`, `user_profile.md`, `project_architecture.md` (last one was derivable from code anyway)
+- Auto-memory `MEMORY.md` — trimmed to only machine-specific entries, points at the repo file for portable rules
+
+**Why:** User wanted the rules to travel with the repo to new PCs via git, not live in per-machine auto-memory.
+
+## 2026-04-16 — Promote ble-pair script to first-class command
+
+**What:** Renamed in-progress `ble-pair.tmp.86349.1776338994153` to `ble-pair`, made it executable, re-stowed. Updated the BLE mouse pairing lesson with a "Fast path" note pointing at the script.
+
+**Files changed:**
+- `scripts/.local/bin/ble-pair` — renamed from `.tmp.*`, chmod +x, now symlinked into `~/.local/bin/`
+- `.claude/lessons/ble-mouse-pairing-bluez.md` — added "Fast path: `ble-pair \"MX Master 4\"`" line so future sessions skip re-exploration
+
+**Why:** User paired mouse successfully via the tmp script and asked to lock it in so the next pairing is a one-liner instead of re-deriving the workflow.
+
 ## 2026-03-15 — Skill upgrades + command safety system
 
 **What:** Upgraded `/log` and `/learn` skills with YAML frontmatter, progressive disclosure, and argument handling. Added a command safety system with dangerous pattern detection and a persistent never-do list.

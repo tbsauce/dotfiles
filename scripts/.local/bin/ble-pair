@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+# Pair a BLE device (e.g. Logitech MX mice) in one persistent bluetoothctl
+# session — works around BLE rotating-MAC + auth issues with the default agent.
+# Usage: ble-pair "<device name as advertised>"   e.g. ble-pair "MX Master 4"
+import subprocess, time, re, sys, select
+
+if len(sys.argv) < 2:
+    print("usage: ble-pair <device-name>", file=sys.stderr)
+    sys.exit(2)
+
+NAME = sys.argv[1]
+TIMEOUT = 45
+
+p = subprocess.Popen(
+    ["bluetoothctl"],
+    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    text=True, bufsize=1,
+)
+
+def send(cmd, wait=0.3):
+    print(f">>> {cmd}", flush=True)
+    p.stdin.write(cmd + "\n")
+    p.stdin.flush()
+    time.sleep(wait)
+
+def drain(seconds):
+    end = time.time() + seconds
+    out = ""
+    while time.time() < end:
+        r, _, _ = select.select([p.stdout], [], [], 0.2)
+        if r:
+            line = p.stdout.readline()
+            if not line:
+                break
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            out += line
+    return out
+
+send("power on")
+drain(1)
+send("agent NoInputNoOutput")
+drain(0.5)
+send("default-agent")
+drain(0.5)
+send("scan on")
+
+mac = None
+buf = drain(2)
+deadline = time.time() + TIMEOUT
+pat = re.compile(r"Device ([0-9A-F:]{17}) " + re.escape(NAME))
+while time.time() < deadline and not mac:
+    chunk = drain(2)
+    buf += chunk
+    m = pat.search(buf)
+    if m:
+        mac = m.group(1)
+        break
+
+send("scan off")
+drain(1)
+
+if not mac:
+    print(f"!!! Did not find '{NAME}' — is it in pairing mode (LED fast-blinking)?")
+    send("exit")
+    sys.exit(1)
+
+print(f"=== Found MAC: {mac}")
+send(f"pair {mac}", wait=1)
+drain(8)
+send(f"trust {mac}")
+drain(1)
+send(f"connect {mac}", wait=1)
+drain(6)
+send(f"info {mac}")
+drain(2)
+send("exit")
+drain(1)
+p.wait(timeout=3)

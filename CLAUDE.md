@@ -1,5 +1,9 @@
 # Dotfiles Project Rules
 
+## Preferences & working rules
+
+- **Read `.claude/preferences.md` at start of each conversation** — portable user profile + working rules (ask before executing, incremental logging, keep work inside `~/dotfiles`, no Co-Authored-By). This replaces the per-machine auto-memory rules so they travel with the repo.
+
 ## Safety Rules (HARD — never break these)
 
 - NEVER run destructive commands (`rm -rf`, `git reset --hard`, `git push --force`, `stow -D` on all packages) without explicit user permission — *one wrong flag can nuke the entire config*
