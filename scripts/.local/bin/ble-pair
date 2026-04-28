@@ -48,7 +48,7 @@ send("scan on")
 mac = None
 buf = drain(2)
 deadline = time.time() + TIMEOUT
-pat = re.compile(r"Device ([0-9A-F:]{17}) " + re.escape(NAME))
+pat = re.compile(r"Device ([0-9A-F:]{17}) .*" + re.escape(NAME))
 while time.time() < deadline and not mac:
     chunk = drain(2)
     buf += chunk

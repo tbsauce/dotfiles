@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-04-26 — Fix BLE auto-reconnect with btmgmt find + custom daemon
+
+**What:** Root cause: kernel LL Privacy bug (since 5.9) breaks IRK resolution for rotated BLE MACs. Fix: `btmgmt find -l` forces LE discovery that resolves MACs via stored IRKs. Deployed three layers:
+1. Custom `ble-autoconnect` daemon (polls every 30s, runs `btmgmt find` before connecting) — systemd service at `bluetooth-autoconnect.service`, script at `/usr/local/bin/ble-autoconnect`, source in `scripts/.local/bin/ble-autoconnect`
+2. Sleep/resume hook at `/usr/lib/systemd/system-sleep/bt-reconnect.sh` — runs `btmgmt find` on wake
+3. Re-paired both devices (R65 keyboard, MX Master 4 mouse) — MACs had rotated
+
+Replaced upstream `bluetooth-autoconnect` (github.com/jrouleau) which only triggered on adapter power-on and didn't handle MAC rotation.
+
+## 2026-04-25 — Improve BlueZ config for BLE auto-reconnect + fix ble-pair script
+
+**What:** Configured `/etc/bluetooth/main.conf`:
+- `[General]`: `Privacy = device`, `AutoEnable = true`, `FastConnectable = true`, `JustWorksRepairing = always`
+- `[Policy]`: `ReconnectAttempts = 7`, `ReconnectIntervals = 1,2,4,8,16,32,64`
+
+Re-paired MX Master 4 (MAC rotated from `:EE` to `:EF` after restart). Paired Royal Kludge R65 keyboard (advertises as "R65"). Fixed `ble-pair` script name matching to use substring match (`.*` before device name) — BLE devices advertise short names first. Mouse now auto-reconnects after power cycle. Updated lesson with full BlueZ config, troubleshooting, and Linux vs Windows Bluetooth explanation.
+
 ## 2026-04-17 — Switch statusline palette to Catppuccin Mocha accents
 
 **What:** Replaced the Macchiato accent hexes (too washed out against the dark terminal) with Catppuccin Mocha accents — same family, higher saturation. Also replaced `\033[2m` dim attribute with explicit Overlay2 `#939ab7` color for consistent rendering.

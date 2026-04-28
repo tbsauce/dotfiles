@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Daemon that auto-connects trusted BLE devices.
+
+Runs `btmgmt find` to force LE discovery (resolves rotated BLE MACs via stored
+IRKs — workaround for kernel LL Privacy bug), then connects any trusted device
+that isn't connected.
+
+Usage: ble-autoconnect          (run as systemd service)
+       ble-autoconnect --once   (try once and exit)
+"""
+import subprocess, time, sys, signal
+
+POLL_INTERVAL = 30
+once = "--once" in sys.argv
+
+
+def btmgmt_find():
+    try:
+        subprocess.run(
+            ["btmgmt", "find", "-l"],
+            capture_output=True, timeout=20,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+        print(f"[ble-autoconnect] btmgmt find failed: {e}", flush=True)
+
+
+def get_trusted_disconnected():
+    result = subprocess.run(
+        ["bluetoothctl", "devices", "Paired"],
+        capture_output=True, text=True, timeout=5,
+    )
+    devices = []
+    for line in result.stdout.strip().splitlines():
+        parts = line.split(" ", 2)
+        if len(parts) < 3:
+            continue
+        mac = parts[1]
+        info = subprocess.run(
+            ["bluetoothctl", "info", mac],
+            capture_output=True, text=True, timeout=5,
+        )
+        trusted = connected = False
+        for l in info.stdout.splitlines():
+            l = l.strip()
+            if l == "Trusted: yes":
+                trusted = True
+            if l == "Connected: yes":
+                connected = True
+        if trusted and not connected:
+            devices.append((mac, parts[2] if len(parts) > 2 else mac))
+    return devices
+
+
+def try_connect(mac, name):
+    try:
+        r = subprocess.run(
+            ["bluetoothctl", "connect", mac],
+            capture_output=True, text=True, timeout=15,
+        )
+        if "Connection successful" in r.stdout:
+            print(f"[ble-autoconnect] connected {name}", flush=True)
+            return True
+        else:
+            msg = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr.strip()
+            print(f"[ble-autoconnect] failed {name}: {msg}", flush=True)
+            return False
+    except subprocess.TimeoutExpired:
+        print(f"[ble-autoconnect] timeout {name}", flush=True)
+        return False
+
+
+def reconnect_pass():
+    devices = get_trusted_disconnected()
+    if not devices:
+        return
+    btmgmt_find()
+    for mac, name in devices:
+        try_connect(mac, name)
+
+
+def poll_loop():
+    while True:
+        time.sleep(POLL_INTERVAL)
+        try:
+            reconnect_pass()
+        except Exception as e:
+            print(f"[ble-autoconnect] poll error: {e}", flush=True)
+
+
+def main():
+    reconnect_pass()
+    if once:
+        return
+
+    print(f"[ble-autoconnect] daemon started, polling every {POLL_INTERVAL}s", flush=True)
+    poll_loop()
+
+
+signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
+signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+
+if __name__ == "__main__":
+    main()
