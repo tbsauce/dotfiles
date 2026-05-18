@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-05-12 — Lesson: USB-C hub charging confirmed as hardware limitation
+
+**What:** Updated lesson `usbc-hub-charging-ucsi.md` after full investigation. BIOS update 302→316 applied via EZ Flash — did not fix the issue. Confirmed no UCSI ACPI device (`PNP0CA0`) exists in firmware at all. This is an ASUS Vivobook M1502YA hardware limitation — ASUS never implemented UCSI. Also corrected hardware memory: laptop has 1x USB-C + USB-A ports (not "USB-C only"). Workaround: USB-C female to USB-A adapter for hub data, charge directly on USB-C.
+
 ## 2026-04-26 — Fix BLE auto-reconnect with btmgmt find + custom daemon
 
 **What:** Root cause: kernel LL Privacy bug (since 5.9) breaks IRK resolution for rotated BLE MACs. Fix: `btmgmt find -l` forces LE discovery that resolves MACs via stored IRKs. Deployed three layers:

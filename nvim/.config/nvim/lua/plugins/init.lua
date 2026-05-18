@@ -26,6 +26,15 @@ return {
   -- 	},
   -- },
   {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = { "markdown" },
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    opts = {
+      anti_conceal = { enabled = false },
+    },
+  },
+
+  {
     "greggh/claude-code.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
     cmd = { "ClaudeCode" },
