@@ -1,6 +1,6 @@
 # i3 config — Catppuccin Macchiato
 
-set $mod Mod1
+set $mod Mod4
 
 # Font
 font pango:JetBrainsMono Nerd Font 10
