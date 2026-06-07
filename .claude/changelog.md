@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-06-07 — Enhance tmux config with vim navigation, TPM, passthrough
+
+**What:** Merged useful features from colleague's tmux setup into existing config:
+- Added clipboard support, passthrough mode (for image.nvim)
+- Added `prefix+r` reload, current-path splits/windows
+- Added smart Ctrl-h/j/k/l vim-tmux pane navigation (tmux side)
+- Added TPM plugin manager with auto-bootstrap + tmux-jump plugin
+- Added `christoomey/vim-tmux-navigator` to nvim plugins (seamless split/pane nav)
+- Ran `stow -R tmux`
+
+**Files:** `tmux/.tmux.conf`, `nvim/.config/nvim/lua/plugins/init.lua`
+**Pending:** User needs to run `sudo dnf install -y ruby` for tmux-jump to work.
+
 ## 2026-05-12 — Lesson: USB-C hub charging confirmed as hardware limitation
 
 **What:** Updated lesson `usbc-hub-charging-ucsi.md` after full investigation. BIOS update 302→316 applied via EZ Flash — did not fix the issue. Confirmed no UCSI ACPI device (`PNP0CA0`) exists in firmware at all. This is an ASUS Vivobook M1502YA hardware limitation — ASUS never implemented UCSI. Also corrected hardware memory: laptop has 1x USB-C + USB-A ports (not "USB-C only"). Workaround: USB-C female to USB-A adapter for hub data, charge directly on USB-C.

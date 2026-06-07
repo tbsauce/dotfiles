@@ -40,9 +40,21 @@ return {
     cmd = { "ClaudeCode" },
     config = function()
       require("claude-code").setup({
-        -- You can leave this empty for defaults 
+        -- You can leave this empty for defaults
         -- or customize the window style here
       })
     end,
+  },
+
+  {
+    "christoomey/vim-tmux-navigator",
+    event = "VeryLazy",
+    cmd = { "TmuxNavigateLeft", "TmuxNavigateDown", "TmuxNavigateUp", "TmuxNavigateRight" },
+    keys = {
+      { "<C-h>", "<cmd>TmuxNavigateLeft<cr>" },
+      { "<C-j>", "<cmd>TmuxNavigateDown<cr>" },
+      { "<C-k>", "<cmd>TmuxNavigateUp<cr>" },
+      { "<C-l>", "<cmd>TmuxNavigateRight<cr>" },
+    },
   },
 }
