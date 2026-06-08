@@ -54,9 +54,6 @@ export FZF_DEFAULT_OPTS=" \
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-# ── Zoxide ──
-eval "$(zoxide init zsh --cmd cd)"
-
 # ── Source extra configs ──
 if [ -d ~/.zshrc.d ]; then
     for rc in ~/.zshrc.d/*; do
@@ -71,3 +68,6 @@ source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 # ── Starship prompt (must be last) ──
 eval "$(starship init zsh)"
 alias claude="claude --model claude-opus-4-6 --effort max"
+
+# ── Zoxide (must be last) ──
+eval "$(zoxide init zsh --cmd cd)"
