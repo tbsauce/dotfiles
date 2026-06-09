@@ -1,9 +1,5 @@
 # Dotfiles Project Rules
 
-## Preferences & working rules
-
-- **Read `.claude/preferences.md` at start of each conversation** — portable user profile + working rules (ask before executing, incremental logging, keep work inside `~/dotfiles`, no Co-Authored-By). This replaces the per-machine auto-memory rules so they travel with the repo.
-
 ## Safety Rules (HARD — never break these)
 
 - NEVER run destructive commands (`rm -rf`, `git reset --hard`, `git push --force`, `stow -D` on all packages) without explicit user permission — *one wrong flag can nuke the entire config*
@@ -16,23 +12,21 @@
 
 ## Safety System
 
-- **Before running any Bash command that modifies the system**, check `.claude/commands/references/safety-rules.md` for dangerous patterns
-- **At start of each conversation**, read `.claude/never-do.md` for user corrections
-- **When the user says "never do X"** or corrects a dangerous action, append to `.claude/never-do.md` with date, what, why, and trigger
+- **Before running any Bash command that modifies the system**, check `.claude/rules/safety.md` for dangerous patterns
+- **When the user says "never do X"** or corrects a dangerous action, capture it with `/learn`
 
 ## Workflow Rules
 
 - Always plan before executing — outline what you'll do, then do it
 - Log to `.claude/changelog.md` after **each system-affecting action** (stow, systemctl, dnf, config edits, git commits/pushes, file writes to dotfiles) — not after read-only commands (ls, cd, cat, grep). Log incrementally as actions happen, not batched at end of session.
 - Read `.claude/changelog.md` at start of each conversation to understand recent history
-- Read `.claude/lessons/` to apply learned knowledge — *don't re-discover what's already known*
-- When something breaks or gets fixed, record the lesson in `.claude/lessons/`
+- When something breaks or gets fixed, capture it with `/learn`
 
 ## Skills & Commands
 
 - `/log` — View changelog (recent actions, filtered by date/keyword)
-- `/learn` — Extract and save lessons from recent work to `.claude/lessons/`
-- Lesson format reference: `.claude/commands/references/lesson-format.md`
+- `/learn` — Capture a lesson to `.claude/rules/lessons.md` (one-liner, immediately active)
+- `/reflect` — Review session for missed lessons, then curate: merge duplicates, promote proven lessons to `rules/`, archive stale ones
 
 ## Project Rules
 

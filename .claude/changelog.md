@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-06-08 — Revert i3 to Alt, move tmux to Alt+Ctrl
+
+- Reverted i3 `$mod` from `Mod4` (Super) back to `Mod1` (Alt)
+- Changed tmux direct binds from `M-` (Alt) to `M-C-` (Alt+Ctrl) to avoid conflicts
+- Keybind layers: Alt → i3, Alt+Shift → i3 move/secondary, Alt+Ctrl → tmux
+
+## 2026-06-08 — Replace lesson system with MyBrain learn/reflect engine
+
+**What:** Migrated from heavyweight per-file lessons to the MyBrain learn/reflect skill system. Skills are domain-agnostic (copied verbatim); only the lesson content is project-specific.
+
+**Created:**
+- `.claude/skills/learn/SKILL.md` — one-liner lesson capture with dupe detection, archive resurrection, quality gates
+- `.claude/skills/reflect/SKILL.md` — session review + lesson curation (merge/promote/archive/rewrite, max 3 proposals per run)
+- `.claude/rules/lessons.md` — 3 migrated lessons as one-liners (BLE pairing, Flatpak singleton, USB-C hub)
+- `.claude/rules/workflow.md` — 4 promoted working rules (ask before executing, incremental logging, keep work in dotfiles, no Co-Authored-By)
+- `.claude/rules/user.md` — user profile (from preferences.md)
+- `.claude/rules/safety.md` — moved from commands/references/safety-rules.md
+
+**Removed:**
+- `.claude/commands/learn.md` (replaced by skill)
+- `.claude/commands/references/lesson-format.md` + `safety-rules.md` (moved/absorbed)
+- `.claude/commands/references/` directory
+- `.claude/never-do.md` (concept absorbed — corrections now go through /learn)
+- `.claude/preferences.md` (split into rules/workflow.md + rules/user.md)
+- `.claude/lessons/*.md` + directory (migrated to rules/lessons.md one-liners)
+
+**Updated:** `CLAUDE.md` — removed preferences.md pointer, updated safety/workflow/skills sections to reference new paths
+
 ## 2026-06-07 — Enhance tmux config with vim navigation, TPM, passthrough
 
 **What:** Merged useful features from colleague's tmux setup into existing config:
