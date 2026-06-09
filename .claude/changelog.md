@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-09 — Stow Claude Code settings.json
+
+**What:** Added `~/.claude/settings.json` (theme + statusLine config) to the `claude` stow package alongside the existing `statusline.sh`. Removed the loose file and re-stowed so both are symlinked.
+
 ## 2026-06-07 — Enhance tmux config with vim navigation, TPM, passthrough
 
 **What:** Merged useful features from colleague's tmux setup into existing config:
