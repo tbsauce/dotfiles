@@ -1,0 +1,7 @@
+{
+  "theme": "dark-daltonized",
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  }
+}

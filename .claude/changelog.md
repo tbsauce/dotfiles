@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-09 — Stow Claude Code settings.json
+
+**What:** Added `~/.claude/settings.json` (theme + statusLine config) to the `claude` stow package alongside the existing `statusline.sh`. Removed the loose file and re-stowed so both are symlinked.
+
 ## 2026-06-08 — Revert i3 to Alt, move tmux to Alt+Ctrl
 
 - Reverted i3 `$mod` from `Mod4` (Super) back to `Mod1` (Alt)
