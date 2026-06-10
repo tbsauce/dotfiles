@@ -1,7 +1,30 @@
 {
-  "theme": "dark-daltonized",
+  "env": {
+    "CLAUDE_CODE_DISABLE_FAST_MODE": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Skill(reflect)",
+      "Skill(learn)",
+      "WebSearch",
+      "Bash(ls:*)"
+    ]
+  },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.sh"
-  }
+    "command": "bash /home/tsauce/.claude/statusline.sh",
+    "padding": 0
+  },
+  "awaySummaryEnabled": false,
+  "autoUpdatesChannel": "stable",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-daltonized",
+  "verbose": false,
+  "autoCompactEnabled": true,
+  "model": "claude-fable-5[1m]"
 }

@@ -67,7 +67,6 @@ source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # ── Starship prompt (must be last) ──
 eval "$(starship init zsh)"
-alias claude="claude --model claude-opus-4-6 --effort max"
 
 # ── Zoxide (must be last) ──
 eval "$(zoxide init zsh --cmd cd)"

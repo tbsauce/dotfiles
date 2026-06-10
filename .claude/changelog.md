@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-06-10 — Promote curated settings.json into `claude` package + re-stow
+
+**What:** Copied the fully-curated live `~/.claude/settings.json` into `claude/.claude/settings.json` (overwrote the stale 2-key copy), removed the live real file, and ran `stow claude`. `~/.claude/settings.json` is now a symlink → dotfiles (joins `statusline.sh`, already linked). Verified: valid JSON via symlink, git shows `M claude/.claude/settings.json`. Not yet committed.
+
+## 2026-06-10 — Disable fast mode + drop dead adaptive-thinking flag (live ~/.claude/settings.json)
+
+**What:** (1) Fully disabled Claude Code fast mode so it can't be toggled on — added `CLAUDE_CODE_DISABLE_FAST_MODE: "1"` to `env`, removed the now-pointless `fastMode: false` and `fastModePerSessionOptIn: true`. (2) Removed `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING: "1"` — it's a no-op on Opus 4.7+ (adaptive reasoning can't be disabled there); user committed to staying on Opus 4.8.
+
+**Why:** Fast mode is same-model but billed at a 3–5x premium *outside* the plan's included usage; user wants it off with no opt-in. The adaptive-thinking flag only affects Opus 4.6 / Sonnet 4.6, so it was dormant cruft on 4.8. Edited live file only (not yet promoted to the `claude` stow package).
+
+**Follow-up same day — settings.json cleanup pass:** Removed inert `permissions.defaultMode: "default"` (it's the default, did nothing). Removed undocumented `skipAutoPermissionPrompt: true` (not in official docs, likely legacy/inert). Removed `agentPushNotifEnabled: false` (user doesn't use mobile push). Kept `skipDangerousModePermissionPrompt: true` (user's choice). User set `verbose: false` via /config.
+
+**Second pass — app re-injected default keys via /config.** Curated them: kept `autoUpdatesChannel: stable`, `autoCompactEnabled: true` (auto-summarize at max context — keeps sessions seamless), `awaySummaryEnabled: false` (explicit = no away-recap). Removed `preferredNotifChannel`, `switchModelsOnFlag` (undocumented), `terminalProgressBarEnabled` (cosmetic). NOTE: Claude Code rewrites this file on every /config — undocumented default keys will likely reappear; this file self-modifies under stow, expect occasional git drift.
+
 ## 2026-06-09 — Stow Claude Code settings.json
 
 **What:** Added `~/.claude/settings.json` (theme + statusLine config) to the `claude` stow package alongside the existing `statusline.sh`. Removed the loose file and re-stowed so both are symlinked.
