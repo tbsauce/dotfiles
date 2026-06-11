@@ -1,6 +1,6 @@
 ---
 name: reflect
-description: "Curate and sharpen the active lesson list. Use at end of session, when lessons are piling up, or when the user wants to clean house. Detects contradictions, proposes merges/promotions/archives, narrows lessons that misfired, rewrites lessons that failed to fire, heals legacy lesson layouts."
+description: "Curate and sharpen the active lesson list. Use at end of session, when lessons are piling up, or when the user wants to clean house. Detects contradictions, proposes merges/promotions/archives, narrows lessons that misfired, rewrites lessons that failed to fire, flags legacy lesson layouts."
 user-invocable: true
 ---
 
@@ -34,22 +34,16 @@ The pruner, not the gatekeeper. All actions are proposals.
 
 ### Step 0: Layout Check
 
-Lessons rot fastest in dead locations. Cheap check, run every time, skip silently if
-the layout is already canonical:
+Cheap consistency checks, run every time, skip silently when everything is canonical:
 
-- A `## Lessons` section inside CLAUDE.md (legacy)
-- A `.claude/lessons.md` file (manual-pointer era, often orphaned)
-- An active file missing the 4-line contract header /learn creates
-- An orphaned dossier: a file in `.claude/dossiers/` whose filename appears nowhere in
-  lessons.md, the archive, rules/, or skill files — propose re-linking it to its owner
-  or adding an archive tombstone for it; never delete it
-
-If legacy stores are found (orphaned dossiers carry their own remedy above), propose a
-one-time migration as a numbered batch: entries move to
-`.claude/rules/lessons.md` in one-line format (date trailing); entries too big for one
-line move to `rules/{domain}.md` WITH their evidence preserved; the legacy store is
-emptied, leaving a one-line pointer to the new location. User approves before anything
-moves.
+- **Missing contract header:** the active file lacks the 4-line header /learn creates
+  → propose adding it.
+- **Orphaned dossier:** a file in `.claude/dossiers/` whose filename appears nowhere in
+  lessons.md, the archive, rules/, or skill files → propose re-linking it to its owner
+  or adding an archive tombstone for it; never delete it.
+- **Legacy store tripwire:** a `## Lessons` section inside CLAUDE.md, or a
+  `.claude/lessons.md` file → flag it to the user and stop there. Do NOT migrate
+  automatically; migration is a one-time, user-driven operation with its own prompt.
 
 ### Step 1: Session Analysis
 
