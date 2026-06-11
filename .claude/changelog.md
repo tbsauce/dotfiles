@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-11 — Dossier consistency patch (final review)
+
+**What:** /learn rule 10 ("dossiers follow their lesson" — archive/merge/resurrect/evict keeps the pointer and updates the dossier `status:` header), explicit dossier write after approval in Step 5, and /reflect Step 0's migration-batch remedy scoped to legacy stores only (orphaned dossiers have their own remedy).
+
+**Why:** /learn runs without /reflect loaded, but performs lifecycle transitions itself (Step 6 evictions, merges, resurrection) — the dossier-side instruction had to live locally or those transitions would leave stale dossier headers.
+
 ## 2026-06-11 — Dossier auto-draft + lifecycle in learn/reflect
 
 **What:** /learn Step 5 gains a saga check: captures from multi-attempt investigations, dead ends, hard evidence, or counter-intuitive proofs get a dossier draft alongside the one-liner (approve line / both / neither; line-only default; char count is NOT the trigger — over-150 still routes to rules/). Dossiers live at `.claude/dossiers/<slug>.md` in every project, vaults included (replaces the `[[Note]]`/docs/ split), with a fixed template: Rule / What happened / Evidence / Dead ends required (at least one of the last two), Scope / History optional, omit empty sections, 10-40 lines, distill don't transcribe. /reflect gains a Dossier Lifecycle section — pointers travel with the line through ARCHIVE/PROMOTE/GRADUATE/resurrection, dossiers never move/delete/merge, `status:` header updated each transition — plus an orphan scan in Step 0 and a dossiers row in File Locations.

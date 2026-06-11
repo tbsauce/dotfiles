@@ -44,7 +44,8 @@ the layout is already canonical:
   lessons.md, the archive, rules/, or skill files — propose re-linking it to its owner
   or adding an archive tombstone for it; never delete it
 
-If any are found, propose a one-time migration as a numbered batch: entries move to
+If legacy stores are found (orphaned dossiers carry their own remedy above), propose a
+one-time migration as a numbered batch: entries move to
 `.claude/rules/lessons.md` in one-line format (date trailing); entries too big for one
 line move to `rules/{domain}.md` WITH their evidence preserved; the legacy store is
 emptied, leaving a one-line pointer to the new location. User approves before anything

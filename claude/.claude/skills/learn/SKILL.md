@@ -188,7 +188,8 @@ with this header:
 # Managed by /learn (capture) and /reflect (curate).
 ```
 
-Append the approved lesson.
+Append the approved lesson. If a dossier was approved with it, write the dossier to
+`.claude/dossiers/` (create the directory if needed).
 
 ### Step 6: Budget Check
 
@@ -216,3 +217,6 @@ The budget never blocks the capture itself.
    NARROW rewrite and an `ov` date — not deletion.
 8. **Never block capture.** Routing, gates, and budgets are nudges; "save it anyway" wins.
 9. **No metadata from the user.** Dates are automatic. The user provides only the lesson.
+10. **Dossiers follow their lesson.** Any action that moves, merges, or resurrects a
+    pointered lesson — including Step 6 evictions — keeps the pointer on the surviving
+    line or tombstone and updates the dossier's `status:` header.
