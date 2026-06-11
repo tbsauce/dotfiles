@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-11 — Globalize Claude skills: learn/reflect engine v2 + global capture trigger
+
+**What:** Added `claude/.claude/skills/{learn,reflect,handoff,skill-creator,council}` and `claude/.claude/CLAUDE.md` to the stow package, ran `stow claude` — `~/.claude/skills/*` (5 symlinks) and `~/.claude/CLAUDE.md` now point into dotfiles. learn/reflect upgraded to engine v2: `ov` ledger marker + NARROW action for misfired lessons, promotion destination gradient (hook/permission rule > project-owned skill > rules/), tombstones to archive instead of deletion, graduation at 3+ with synthesis test + mandatory skill-creator scaffolding, uncorrected-inefficiency sweep in /reflect, forced-rank eviction when over budget, version stamps in both files. Global CLAUDE.md carries the lesson-capture trigger (loads in every project). Deleted the now-shadowing project copies: `.claude/skills/{learn,reflect}` here, all five skills in MyBrain. handoff/council got one-word genericizations ("vault-relative" → "project-relative", "the vault's standard" → "the standard").
+
+**Why:** Per-project engine copies had already drifted (QuantTrader's learn skill contradicts itself; learn-vs-reflect `re`-date threshold skew). One canonical copy + symlinks kills that rot class — same pattern as settings.json. The capture trigger moved to always-loaded global text because manual-only capture starves (3 lessons here vs ~60 under QuantTrader's always-loaded protocol). QuantTrader/QuantWebscrapper copies intentionally left for later migration via /reflect Step 0.
+
+## 2026-06-11 — Resolved diverged main: `git pull --rebase` + `git push`
+
+**What:** Remote had `ffc77ed home general` (pushed from another machine), local had `66dc947 more`. Rebased local onto remote (new hash `53c55eb`), then pushed. No conflicts.
+
 ## 2026-06-10 — Promote curated settings.json into `claude` package + re-stow
 
 **What:** Copied the fully-curated live `~/.claude/settings.json` into `claude/.claude/settings.json` (overwrote the stale 2-key copy), removed the live real file, and ran `stow claude`. `~/.claude/settings.json` is now a symlink → dotfiles (joins `statusline.sh`, already linked). Verified: valid JSON via symlink, git shows `M claude/.claude/settings.json`. Not yet committed.
