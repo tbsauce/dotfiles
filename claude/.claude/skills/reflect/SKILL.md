@@ -27,6 +27,7 @@ The pruner, not the gatekeeper. All actions are proposals.
 | `.claude/settings.json` | Enforcement tier: hooks + permission/deny rules (top promotion destination) |
 | `.claude/rules/{domain}.md` | Promoted cross-cutting rules (permanent, auto-loaded) |
 | `.claude/lessons-archive.md` | Cold storage + tombstones (append-only, resurrection via /learn) |
+| `.claude/dossiers/` | Case files behind complex lessons — cold, never auto-loaded; pointers travel with the line (see Dossier Lifecycle) |
 | `.claude/skills/*/SKILL.md` | Graduation targets (project-owned skills ONLY) |
 
 ## Process
@@ -39,6 +40,9 @@ the layout is already canonical:
 - A `## Lessons` section inside CLAUDE.md (legacy)
 - A `.claude/lessons.md` file (manual-pointer era, often orphaned)
 - An active file missing the 4-line contract header /learn creates
+- An orphaned dossier: a file in `.claude/dossiers/` whose filename appears nowhere in
+  lessons.md, the archive, rules/, or skill files — propose re-linking it to its owner
+  or adding an archive tombstone for it; never delete it
 
 If any are found, propose a one-time migration as a numbered batch: entries move to
 `.claude/rules/lessons.md` in one-line format (date trailing); entries too big for one
@@ -173,13 +177,16 @@ destination and a one-line why-this-tier:
 **Counter-intuitive rules keep their evidence.** If a confident future Claude would
 "fix" the rule backwards (it contradicts docs, intuition, or how things usually work),
 the promoted rule MUST carry its proof: the numbers, the failing example, the date it
-was re-learned. One-line purity applies to lessons.md, not to rules files.
+was re-learned. One-line purity applies to lessons.md, not to rules files. A dossier
+pointer may ride along for the full history, but it never replaces the inline proof —
+the dossier doesn't load at fire time.
 
 Promotion creates or appends to the chosen destination. One rule per bullet. Group
 related promotions into the same file. **The promoted lesson leaves a TOMBSTONE:** its
 line moves to `lessons-archive.md` with the full date ledger plus
 `| promoted → <destination>, YYYY-MM-DD`. The ledger is the rule's provenance — never
-delete it.
+delete it. Any dossier pointer travels with the line into the tombstone, and the
+dossier's `status:` header is updated (see Dossier Lifecycle).
 
 Never promote into the main project instructions file (CLAUDE.md or equivalent).
 
@@ -205,21 +212,47 @@ keep them as lessons.
   skill-creator is not available in this project, stop and ask.
 - Graduated lessons leave tombstones in the archive: full ledger +
   `| graduated → skills/<name>, YYYY-MM-DD`.
+- Dossiers of graduated lessons stay in `.claude/dossiers/`, get cited as sources in
+  the `## Operational Lessons` section, and have their `status:` header updated
+  (see Dossier Lifecycle).
 
 ## Archive Mechanics
 
 File: `.claude/lessons-archive.md` (created on first archive).
 
-Format: same one-liner + archive metadata. Three tombstone kinds:
+Format: same one-liner + archive metadata. Tombstone kinds — archived, promoted,
+graduated; dossier pointers travel with the line:
 
 ```
 workaround: restart flatpak after update (2026-04-15) | archived: 2026-06-07, bug fixed in v1.6
 obsidian move updates wikilinks, raw mv does not (2026-05-28, re 2026-06-09) | promoted → rules/vault.md, 2026-06-11
 prefer truth-table TCs for simple algorithms (2026-04-13, re 2026-05-13) | graduated → skills/tc-format, 2026-06-11
+never filter tape D from post-news bars (2026-05-06) → .claude/dossiers/tape-d-trf.md | promoted → rules/data.md, 2026-06-11
 ```
 
 Append-only. No scheduled reviews. Resurrection happens via /learn: if the same concept
 is captured again, /learn finds the archived entry and resurrects it automatically.
+
+## Dossier Lifecycle
+
+Dossiers (`.claude/dossiers/`) are cold storage — never auto-loaded, zero context
+cost. So they never move, are never deleted, and are never merged. The invariant is
+bidirectional linkage: the lesson line carries the pointer, the dossier header
+carries `status:` and owner. Every transition updates both ends.
+
+| Lesson transition | Pointer (line side) | Dossier (file side) |
+|---|---|---|
+| REWRITE / NARROW | kept on the rewritten line | unchanged |
+| MERGE | merged line keeps BOTH pointers — dossier files are never merged | unchanged |
+| ARCHIVE | travels into the tombstone | stays; `status: lesson archived YYYY-MM-DD` |
+| PROMOTE | rides on the promoted rule; inline evidence stays inline — the dossier supplements, never substitutes | stays; `status: promoted → rules/{domain}.md YYYY-MM-DD` |
+| GRADUATE | the skill's `## Operational Lessons` cites the dossiers as sources | stays; `status: graduated → skills/<name> YYYY-MM-DD` |
+| Resurrection | returns with the line (preserved in the tombstone) | `status: active` again |
+
+If a dossier turns out to contain real domain knowledge (not just operational
+history), suggest extracting it into the project's knowledge system (e.g., a vault
+note through its normal pipeline); the dossier stays as the operational record with
+a History line pointing to the extraction.
 
 ## Rules
 
@@ -233,7 +266,8 @@ is captured again, /learn finds the archived entry and resurrects it automatical
    lesson; rewriting it is worth more than any new capture.
 5. **Graduate into project-owned skills only.** Shared skills stay verbatim-copyable.
 6. **Tombstones, not deletion.** Promoted and graduated lessons move to the archive
-   with their full ledger. Provenance never disappears.
+   with their full ledger. Provenance never disappears. Dossier files are never
+   deleted or merged — pointers travel, files stay.
 7. **Be honest about empty sessions.** Nothing learned → say "clean session" and move
    on. Don't invent proposals to justify the command.
 8. **Skip sections silently.** No contradictions → don't say "no contradictions found."

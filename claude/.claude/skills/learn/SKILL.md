@@ -58,9 +58,13 @@ Example: `(2026-03-01, re 2026-06-10, ov 2026-06-11)`. One or more `re` dates
 it a NARROW candidate — the scope is wrong, not the lesson.
 
 **Dossier pointer (optional).** When a saga lives behind the rule (long investigation,
-evidence, version history), the line may end with a pointer to it: `→ [[Note]]` in an
-Obsidian vault, `→ docs/x.md` in a repo. The pointer doesn't count against the ~150
-chars. The line is the reflex; the dossier is the story.
+evidence, version history), the line may end with a pointer to its case file:
+`→ .claude/dossiers/<slug>.md` — same location in every project, vaults included.
+The pointer doesn't count against the ~150 chars. The line is the reflex; the dossier
+is the story. Dossiers are Claude's operational memory: cold storage, never
+auto-loaded, zero context cost. They are NOT knowledge notes — if one turns out to
+contain real domain knowledge, extract that into the project's knowledge system and
+keep the dossier as the operational record.
 
 ## Process
 
@@ -131,6 +135,48 @@ Push back on captures that fail either check:
 - No firing situation: "When would this apply? I can't tell from the wording."
 
 The user can override ("save it anyway"). The gate is a nudge, not a block.
+
+**Saga check — offer a dossier.** Char count is NOT the trigger (over ~150 routes to
+rules/ in Step 2). The trigger is the story: the capture came from a multi-attempt
+investigation, dead ends worth recording, evidence/numbers worth keeping, a reverted
+approach — or the lesson is counter-intuitive and needs its proof preserved. If so,
+draft BOTH while the context is fresh and present them together: the one-liner
+(ending in `→ .claude/dossiers/<slug>.md`) and the dossier draft. The user approves
+line only, both, or neither. When unsure, default to line-only and offer the dossier
+in one sentence. Never push.
+
+Dossier template (`.claude/dossiers/<slug>.md`):
+
+```markdown
+# <Short title> — dossier
+status: active — owner: lessons.md
+created: YYYY-MM-DD
+
+## Rule
+<the one-liner verbatim, as captured>
+
+## What happened
+<the incident: context, what was attempted, what broke or surprised — a few sentences>
+
+## Evidence
+<numbers, error messages, file:line refs, outputs — the liftable proof>
+
+## Dead ends
+<what was tried and why it failed — the "don't re-try this" section>
+
+## Scope
+<where it applies / where it doesn't>
+
+## History
+- YYYY-MM-DD — <new incident, narrowed, extracted to a note, ...>
+```
+
+Template rules: `Rule`, `What happened`, and at least ONE of `Evidence`/`Dead ends` are
+required — a dossier with neither evidence nor dead ends shouldn't exist (the line's
+reason clause was enough). `Scope` and `History` are optional; omit empty sections
+entirely, never leave bare headers. `Rule` is frozen at capture — the live line lives
+in lessons.md; a major rewrite gets one History line, not a sync. Distill, don't
+transcribe: a dossier is a case file, typically 10-40 lines.
 
 If `.claude/rules/lessons.md` doesn't exist, create it (and `.claude/rules/` if needed)
 with this header:

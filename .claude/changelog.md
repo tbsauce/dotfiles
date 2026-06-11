@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-11 — Dossier auto-draft + lifecycle in learn/reflect
+
+**What:** /learn Step 5 gains a saga check: captures from multi-attempt investigations, dead ends, hard evidence, or counter-intuitive proofs get a dossier draft alongside the one-liner (approve line / both / neither; line-only default; char count is NOT the trigger — over-150 still routes to rules/). Dossiers live at `.claude/dossiers/<slug>.md` in every project, vaults included (replaces the `[[Note]]`/docs/ split), with a fixed template: Rule / What happened / Evidence / Dead ends required (at least one of the last two), Scope / History optional, omit empty sections, 10-40 lines, distill don't transcribe. /reflect gains a Dossier Lifecycle section — pointers travel with the line through ARCHIVE/PROMOTE/GRADUATE/resurrection, dossiers never move/delete/merge, `status:` header updated each transition — plus an orphan scan in Step 0 and a dossiers row in File Locations.
+
+**Why:** The saga is free at capture time (it's in the session) and archaeology later. Dossiers are Claude's operational memory, deliberately separate from the user's knowledge pipeline (never Inbox/Library; invisible to Obsidian indexing by design — real knowledge gets extracted to a note instead). Cold storage = zero context cost, so the layer needs no cap, decay, or curation — only the bidirectional-link invariant.
+
 ## 2026-06-11 — Remove version stamps from learn/reflect
 
 **What:** Deleted the `<!-- engine v2 ... canonical: ... -->` HTML comment lines from `claude/.claude/skills/{learn,reflect}/SKILL.md`.
