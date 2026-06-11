@@ -5,8 +5,6 @@ argument-hint: "[lesson text]"
 user-invocable: true
 ---
 
-<!-- engine v2 (2026-06-11) — canonical: ~/dotfiles/claude/.claude/skills/ -->
-
 # Learn — Lesson Capture + Routing
 
 Record a lesson to `.claude/rules/lessons.md`, where it is auto-loaded every session.

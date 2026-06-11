@@ -4,8 +4,6 @@ description: "Curate and sharpen the active lesson list. Use at end of session, 
 user-invocable: true
 ---
 
-<!-- engine v2 (2026-06-11) — canonical: ~/dotfiles/claude/.claude/skills/ -->
-
 # Reflect — Session Review + Lesson Curation
 
 Scan the session for missed lessons, then curate the active lesson list.
