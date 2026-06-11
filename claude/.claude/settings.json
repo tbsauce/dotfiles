@@ -17,7 +17,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash /home/tsauce/.claude/statusline.sh",
+    "command": "bash $HOME/.claude/statusline.sh",
     "padding": 0
   },
   "awaySummaryEnabled": false,
