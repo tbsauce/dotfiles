@@ -108,8 +108,10 @@ For each lesson (oldest-first), evaluate and propose the first action that fits.
   is the promotion signal.
 
 **One-line rule:** every active lesson is one line, date trailing:
-`imperative — reason. (YYYY-MM-DD)` or `(orig-date, re YYYY-MM-DD, ov YYYY-MM-DD)`.
-Legacy formats (date-first, WHY: blocks, continuation lines) get REWRITE to compress.
+`imperative — reason. (YYYY-MM-DD)` or with a ledger `(orig-date, re YYYY-MM-DD, ov YYYY-MM-DD)`.
+When a dossier exists, the pointer comes AFTER the date as the line's last element:
+`imperative — reason. (YYYY-MM-DD) → .claude/dossiers/<slug>.md`.
+Legacy formats (date-first, WHY: blocks, continuation lines, pointer-before-date) get REWRITE to compress.
 If an entry genuinely can't fit one line, it needed the space — PROMOTE it to
 `rules/{domain}.md` with its evidence instead.
 

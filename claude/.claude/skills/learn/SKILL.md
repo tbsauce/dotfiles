@@ -37,6 +37,7 @@ Always use `obsidian move` for note moves, never raw `mv` — the CLI updates wi
 Use `CValidity.Description`, not `C.validity.Description` for validity structs. (2026-06-08)
 Split boundary is 09:00 UTC on ex_date+1, not ex_date itself. (2026-04-04)
 Never filter tape D trades from post-news bars — TRF prints are real retail volume. (2026-05-06)
+Remove stale Singleton{Lock,Socket,Cookie} from ~/.var/app/<id>/cache/<app>/ when a Chromium Flatpak silently exits 0. (2026-04-25) → .claude/dossiers/flatpak-singleton-lock.md
 ```
 
 Two format requirements, both checked at the quality gate:
@@ -58,9 +59,11 @@ Example: `(2026-03-01, re 2026-06-10, ov 2026-06-11)`. One or more `re` dates
 it a NARROW candidate — the scope is wrong, not the lesson.
 
 **Dossier pointer (optional).** When a saga lives behind the rule (long investigation,
-evidence, version history), the line may end with a pointer to its case file:
-`→ .claude/dossiers/<slug>.md` — same location in every project, vaults included.
-The pointer doesn't count against the ~150 chars. The line is the reflex; the dossier
+evidence, version history), the line ends with a pointer to its case file AFTER the
+date: `imperative — reason. (YYYY-MM-DD) → .claude/dossiers/<slug>.md`. Date stays
+inside the canonical line shape; the pointer is always the last element. Same
+location in every project, vaults included. The pointer doesn't count against the
+~150 chars. The line is the reflex; the dossier
 is the story. Dossiers are Claude's operational memory: cold storage, never
 auto-loaded, zero context cost. They are NOT knowledge notes — if one turns out to
 contain real domain knowledge, extract that into the project's knowledge system and

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-12 — Disambiguate dossier-pointer order in learn/reflect skills
+
+**What:** Three surgical edits to `~/.claude/skills/{learn,reflect}/SKILL.md` (stow-linked from `claude/`). learn/SKILL.md: added a dossier-pointer example to the canonical Examples block, and rewrote the "Dossier pointer (optional)" paragraph to spell out the order explicitly (`text. (date) → pointer`, pointer always last). reflect/SKILL.md: extended the one-line rule to show the pointered form, and added `pointer-before-date` to the REWRITE trigger list so misordered legacy lines get cleaned up by `/reflect`.
+
+**Why:** Two separate migration agents (dotfiles + a sibling project) independently put the date AFTER the dossier pointer because both skill files said "the line ends with a pointer" AND "date trails" without showing the combined order. The Examples block had no pointered example; the only canonical pointered line was in a `reflect` archive example agents weren't reading deeply. Fix is pure spec — no behavior change, just removes the ambiguity at the three places agents look (example block → spec paragraph → reflect rewrite rule).
+
 ## 2026-06-12 — Lesson store migration to new skill format
 
 **What:** Rewrote `.claude/rules/lessons.md` from legacy date-leading `(YYYY-MM-DD) text` to date-trailing `text … (YYYY-MM-DD)` format. Reconstructed three dossiers from git history at `1a2a562^:.claude/lessons/` — `flatpak-spotify-singleton-lock.md`, `ble-mouse-pairing-bluez.md`, `usbc-hub-charging-ucsi.md` — and wired dossier pointers into `rules/lessons.md`, `rules/bluetooth.md`, and `lessons-archive.md`. Archive entry left frozen (date-leading preserved).
