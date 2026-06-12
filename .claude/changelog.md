@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-12 — Lesson store migration to new skill format
+
+**What:** Rewrote `.claude/rules/lessons.md` from legacy date-leading `(YYYY-MM-DD) text` to date-trailing `text … (YYYY-MM-DD)` format. Reconstructed three dossiers from git history at `1a2a562^:.claude/lessons/` — `flatpak-spotify-singleton-lock.md`, `ble-mouse-pairing-bluez.md`, `usbc-hub-charging-ucsi.md` — and wired dossier pointers into `rules/lessons.md`, `rules/bluetooth.md`, and `lessons-archive.md`. Archive entry left frozen (date-leading preserved).
+
+**Why:** The 2026-06-09 reorg (1a2a562) compressed three rich dossier files into one-liners; the new skill keeps that evidence in dossiers so one-liners stay terse without losing the saga. Format alignment lets `/learn` and `/reflect` operate on lessons.md without re-interpreting legacy shapes. No lessons deleted; nothing surfaced from git deletion (all three classified as compressed-not-deleted, per user).
+
 ## 2026-06-11 — Dossier consistency patch (final review)
 
 **What:** /learn rule 10 ("dossiers follow their lesson" — archive/merge/resurrect/evict keeps the pointer and updates the dossier `status:` header), explicit dossier write after approval in Step 5, and /reflect Step 0's migration-batch remedy scoped to legacy stores only (orphaned dossiers have their own remedy).
