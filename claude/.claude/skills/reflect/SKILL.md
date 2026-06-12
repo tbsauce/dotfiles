@@ -26,7 +26,7 @@ The pruner, not the gatekeeper. All actions are proposals.
 | `.claude/rules/lessons.md` | Active lessons (auto-loaded every session) |
 | `.claude/settings.json` | Enforcement tier: hooks + permission/deny rules (top promotion destination) |
 | `.claude/rules/{domain}.md` | Promoted cross-cutting rules (permanent, auto-loaded) |
-| `.claude/lessons-archive.md` | Cold storage + tombstones (append-only, resurrection via /learn) |
+| `.claude/lessons-archive.md` | Cold storage + tombstones (entries leave only by resurrection via /learn) |
 | `.claude/dossiers/` | Case files behind complex lessons — cold, never auto-loaded; pointers travel with the line (see Dossier Lifecycle) |
 | `.claude/skills/*/SKILL.md` | Graduation targets (project-owned skills ONLY) |
 
@@ -225,8 +225,11 @@ prefer truth-table TCs for simple algorithms (2026-04-13, re 2026-05-13) | gradu
 never filter tape D from post-news bars (2026-05-06) → .claude/dossiers/tape-d-trf.md | promoted → rules/data.md, 2026-06-11
 ```
 
-Append-only. No scheduled reviews. Resurrection happens via /learn: if the same concept
-is captured again, /learn finds the archived entry and resurrects it automatically.
+Append-only, with one exception: resurrection. When the same concept is captured again,
+/learn finds the archived entry and moves the line back to the active file — a lesson
+lives in exactly one place, so its archive entry leaves with it. Only `archived`-kind
+tombstones can resurrect; promoted/graduated tombstones are provenance and never move.
+No scheduled reviews.
 
 ## Dossier Lifecycle
 
