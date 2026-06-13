@@ -36,22 +36,29 @@ If `$ARGUMENTS` is provided, use it as a focus hint to prioritize what to captur
 Produce a structured summary in this exact format and print it to screen:
 
 ```markdown
+<branch> · <short-sha> · <N> dirty files · <clean|dirty|broken> · <UTC time>
+
 ## Goal
 [One sentence: what we're doing and why]
 
 ## State
-- [File path]: [what was done / current status]
-- [File path]: [what was done / current status]
+- DONE: [claim, file path]
+- DONE (verified: `cmd`): [claim, file path]
+- IN FLIGHT: [file path, stopping point]
+- TODO: [bullet]
 
 ## Decisions
 - [Decision]: [why, so it doesn't get re-debated]
 - [Decision]: [why]
 
-## Next
-[Exact next step, specific enough to act on immediately]
+## Key values
+- [verbatim values a prose summary would blur: MACs, IDs, thresholds, endpoints, error fingerprints — one per line, not already stated as a decision]
 
-## Gotchas
-- [Anything non-obvious: env quirks, things that look wrong but aren't, failed approaches to avoid]
+## Landmines
+- [if-then, root-caused: "if you do X, Y happens because Z; do W instead"]
+
+## Next action [SAFE | CONFIRM-FIRST]
+[Exact next step, specific enough to act on immediately]
 ```
 
 After displaying, suggest: "You can now `/compact` to reset context, or close and resume later.
@@ -61,10 +68,24 @@ Copy the above into your next prompt to continue where you left off."
 
 1. **Generate from the live conversation, not from files.** The handoff captures what's in
    context right now, including reasoning and decisions that aren't written anywhere.
-2. **Be specific, not comprehensive.** The goal is a launchpad, not a logbook. 5-15 lines total.
+2. **Be specific, not comprehensive.** The goal is a launchpad, not a logbook. 15-25 lines total.
    If a section has nothing, omit it.
-3. **Encode lessons, not attempts.** Don't write "tried X, Y, Z and they failed." Write
-   "Use approach W (X/Y/Z don't work because...)."
-4. **Use absolute or project-relative paths.** The handoff must work on both Linux and Windows.
+3. **Encode lessons, not attempts.** Landmines prefer if-then, root-caused form ("if you
+   do X, Y happens because Z; do W instead"). If the cause isn't known, write what you
+   do know rather than skipping the landmine. Don't write "tried X, failed."
+4. **State bullets naming a file use absolute or project-relative paths.** TODO bullets
+   without a file path are fine.
 5. **Decisions are the highest-value section.** Without them, post-compaction Claude re-debates
    settled questions. Always include the "why" for each decision.
+6. **Anchor line metadata is live, not summarized.** Pull branch, short sha, dirty file count,
+   and UTC time from `git` and the clock — not from the conversation. Outside a repo, drop the
+   git fields and keep the UTC time. Status: `clean` = clean tree or expected-dirty, claims
+   verified · `dirty` = uncommitted work or unverified claims · `broken` = failing
+   build/tests, broken mid-edit, live issue.
+7. **Verification is earned.** A `DONE (verified: cmd)` line requires the cmd to be visible
+   in this session's transcript — no reconstruction from memory. Cap at 2 verified entries
+   per handoff; reserve for claims where re-checking on resume costs meaningful time.
+   Everything else is plain `DONE`.
+8. **Tag Next action `CONFIRM-FIRST`** when it touches: `rm`, `git reset --hard`,
+   `git push --force`, schema migrations, or shared state (prod DB, deployed config, shared
+   branch). Otherwise `SAFE`.
