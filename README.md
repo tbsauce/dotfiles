@@ -260,7 +260,7 @@ chsh -s $(which zsh)
 
 - A conflict means a real file exists where stow wants to place a symlink
 - Back up the file, remove it, then re-run `stow <package>`
-- Or use `stow --adopt <package>` to pull existing files into the repo
+- Never use `stow --adopt` — it overwrites your repo with whatever is on the system
 
 ### Notifications not appearing
 

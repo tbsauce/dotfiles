@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-12 — Surgical patch to /handoff skill
+
+**What:** Patched `claude/.claude/skills/handoff/SKILL.md` (stow-linked → `~/.claude/skills/handoff/SKILL.md`). Artifact template: added a `branch · sha · dirty · status · UTC` anchor line at top, claim-based State with `(verified: cmd)` / `(unverified)` / IN FLIGHT / TODO labels, new `## Key values` section for blur-resistant data (MACs, IDs, thresholds, endpoints), `## Gotchas` renamed to `## Landmines` with if-then root-caused form, `## Next` retagged `## Next action [SAFE | CONFIRM-FIRST]`, and section order reshuffled so Next action sits at the end (after Landmines). Rules section grew 5 → 8: budget 5-15 → 15-25 lines, Rule 3 folds in the if-then form, Rule 4 softens for bare TODO bullets (dropped the dead Windows clause); new Rules 6/7/8 define the status enum, guard `verified` against rubber-stamping, and list CONFIRM-FIRST criteria.
+
+**Why:** Compaction reliably blurs precision first — exact paths/MACs/error fingerprints survive a summary worst — so Key values gives those a verbatim bunker. Claim+proof labels on State stop the Jupyter-style false-confidence handoff where unrun work gets passed as done. SAFE/CONFIRM-FIRST + anchor staleness check turn the handoff into a fail-safe artifact (HEAD moved → distrust State; destructive next steps require explicit pause). Print-to-screen stays; file output, /learn routing (already global in CLAUDE.md), mandatory "none", and YAML frontmatter were considered and explicitly rejected as overengineering for a launchpad. Plan: `~/.claude/plans/u-can-do-this-async-lobster.md`.
+
 ## 2026-06-12 — Disambiguate dossier-pointer order in learn/reflect skills
 
 **What:** Three surgical edits to `~/.claude/skills/{learn,reflect}/SKILL.md` (stow-linked from `claude/`). learn/SKILL.md: added a dossier-pointer example to the canonical Examples block, and rewrote the "Dossier pointer (optional)" paragraph to spell out the order explicitly (`text. (date) → pointer`, pointer always last). reflect/SKILL.md: extended the one-line rule to show the pointered form, and added `pointer-before-date` to the REWRITE trigger list so misordered legacy lines get cleaned up by `/reflect`.

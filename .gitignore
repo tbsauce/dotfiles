@@ -8,7 +8,7 @@
 id_rsa*
 id_ed25519*
 *.secret
-credentials.json
+.credentials.json
 secrets.json
 token.json
 

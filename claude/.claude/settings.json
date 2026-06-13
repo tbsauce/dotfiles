@@ -4,7 +4,14 @@
   },
   "permissions": {
     "allow": [
-      "Bash(git:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git restore --staged:*)",
       "Bash(docker compose:*)",
       "Bash(docker:*)",
       "Bash(python3:*)",
