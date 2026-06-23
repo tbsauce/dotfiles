@@ -42,6 +42,9 @@ alias gl='git log --oneline --graph'
 alias gd='git diff'
 alias lg='lazygit'
 
+# Vagrant — force safe TERM so `vagrant ssh` doesn't garble input under kitty
+alias vagrant='TERM=xterm-256color vagrant'
+
 # ── FZF — Catppuccin Macchiato ──
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \

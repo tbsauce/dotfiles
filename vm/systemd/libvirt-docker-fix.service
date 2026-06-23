@@ -1,0 +1,26 @@
+# Systemd unit: allow libvirt VM traffic through Docker's filter chain.
+#
+# Background: Docker installs DOCKER-USER (FORWARD sub-chain) + sets FORWARD policy
+# to DROP — libvirt VMs on virbr0 then can't reach the internet because no rule
+# covers their egress. firewalld --permanent --direct can't fix this because it
+# rebuilds iptables before docker.service creates DOCKER-USER.
+#
+# Install: sudo cp this file → /etc/systemd/system/
+#          sudo systemctl daemon-reload
+#          sudo systemctl enable --now libvirt-docker-fix.service
+
+[Unit]
+Description=Allow libvirt VM traffic through Docker's DOCKER-USER chain
+After=docker.service libvirtd.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c '/usr/sbin/iptables -C DOCKER-USER -i virbr0 -j ACCEPT 2>/dev/null || /usr/sbin/iptables -I DOCKER-USER -i virbr0 -j ACCEPT'
+ExecStart=/bin/sh -c '/usr/sbin/iptables -C DOCKER-USER -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || /usr/sbin/iptables -I DOCKER-USER -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT'
+ExecStop=-/usr/sbin/iptables -D DOCKER-USER -i virbr0 -j ACCEPT
+ExecStop=-/usr/sbin/iptables -D DOCKER-USER -o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+[Install]
+WantedBy=multi-user.target

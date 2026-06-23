@@ -159,6 +159,16 @@ sudo dnf install stow kitty rofi polybar picom bat fd-find btop zsh papirus-icon
 
 # lazygit (COPR)
 sudo dnf copr enable atim/lazygit -y && sudo dnf install lazygit
+
+# VM lab (Kali HTB via Vagrant + libvirt) — see vm/vagrant/kali/
+sudo dnf install @virtualization vagrant vagrant-libvirt virt-manager virt-viewer libvirt-daemon-config-network spice-vdagent
+sudo systemctl enable --now libvirtd
+sudo usermod -aG libvirt $USER   # log out / back in after this
+
+# VM NAT fix — Docker breaks libvirt's FORWARD chain. See vm/systemd/libvirt-docker-fix.service
+sudo cp ~/dotfiles/vm/systemd/libvirt-docker-fix.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now libvirt-docker-fix.service
 ```
 
 > dunst and ripgrep ship with Fedora 43 — no need to install them.

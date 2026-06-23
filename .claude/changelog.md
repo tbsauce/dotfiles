@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-06-16 — Alias `vagrant` to force `TERM=xterm-256color`
+
+**What:** Added `alias vagrant='TERM=xterm-256color vagrant'` to `zsh/.zshrc` in a new Vagrant section between the git shortcuts (`alias lg='lazygit'`) and the FZF Catppuccin block.
+
+**Why:** Host kitty sets `TERM=xterm-kitty` which SSH propagates to the guest. Remote bash readline mishandles kitty's extended keyboard protocol: typed characters echo doubled (`tmux` → `tmuxmux`), arrow keys produce literal escape sequences instead of cycling history. `kitty-terminfo` in the guest fixes screen drawing for full-screen apps (tmux/nvim) but the input garble happens at the outer bash shell before any of that helps. Cleanest fix is host-side — override TERM before SSH starts. Aliasing the `vagrant` command itself (not per-VM aliases) means every `vagrant ssh <name>` and any future Vagrant project gets the fix for free. Bash/zsh aliases aren't recursive, so the inner `vagrant` resolves to the real binary cleanly; `\vagrant` bypasses the alias if ever needed.
+
+## 2026-06-15 — Add `kitty-terminfo` to VM provisioner
+
+**What:** Appended `kitty-terminfo` to the apt install list in `vm/vagrant/kali/provision.sh`.
+
+**Why:** Host kitty sets `TERM=xterm-kitty` and SSH propagates it. Without the kitty terminfo entry in the guest, `tmux` (and many other apps) refuse to start with `missing or unsuitable terminal: xterm-kitty`. The `kitty-terminfo` package installs `/usr/share/terminfo/x/xterm-kitty` — tiny package, big quality-of-life. Hit immediately on first `vagrant ssh kali1` test.
+
+## 2026-06-15 — Auto-bootstrap tmux + nvim dotfiles in Kali VM provisioner
+
+**What:** Extended `vm/vagrant/kali/provision.sh` to install `tmux`, `neovim`, `stow`, `git` and then, as the `vagrant` user, clone `https://github.com/tbsauce/dotfiles.git` into `~/dotfiles`, wipe any default `.tmux.conf` / `.config/nvim/` the Kali box ships, `stow tmux nvim` into `~/`, and pre-warm NvChad via `timeout 240 nvim --headless '+Lazy! sync' +qa` so the first interactive nvim launch is instant. Bootstrap block is idempotent (skips clone if `~/dotfiles` already exists) and timeout-guarded (lazy.nvim hang can't hang the whole provision).
+
+**Why:** Sauce uses tmux + nvim everywhere as muscle-memory tools — manually re-cloning + stowing on every fresh HTB box would be friction that breaks the "throwaway VM" workflow. zsh + starship + the rest of the CLI stack deliberately excluded — pure aesthetic value in an SSH session, ~2 min cheaper provisioning, and bash works fine for HTB. Public-repo HTTPS clone avoids credential sprawl (no SSH keys in disposable VMs). Trade-off: provisioning grows from ~5 min to ~7 min; subsequent `vagrant ssh kali1` is instant with full muscle-memory env.
+
+## 2026-06-15 — VM NAT fix (Docker breaks libvirt FORWARD) + `openvpn` in provisioner
+
+**What:** (1) Created `vm/systemd/libvirt-docker-fix.service`: oneshot systemd unit that runs `After=docker.service libvirtd.service` and idempotently inserts two rules in iptables `DOCKER-USER` — `-i virbr0 -j ACCEPT` (VM egress) and `-o virbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT` (stateful VM ingress). Uses `iptables -C ... || iptables -I ...` so re-runs don't duplicate rules. (2) Added `openvpn` to `vm/vagrant/kali/provision.sh` apt-install list — fresh Kali VMs come ready to run the HTB lab VPN. (3) Patched top-level `README.md` Install block with the systemd unit install commands (`sudo cp` + `daemon-reload` + `enable --now`).
+
+**Why:** Docker installs DOCKER-USER (FORWARD sub-chain) and sets FORWARD policy to DROP — libvirt VM traffic (192.168.122.0/24 → internet) gets blackholed because no rule covers it. Today's session burned ~30 min hitting this: provisioning failed twice with `E: Unable to locate package seclists` because the VM couldn't reach the Kali mirrors. Earlier attempt with `firewall-cmd --permanent --direct` failed: firewalld rebuilds the iptables ruleset on `--reload` and DOCKER-USER doesn't exist at that point (Docker creates it later), producing `iptables-restore: line 2 failed: No chain/target/match by that name` and leaving firewalld in `RUNNING_BUT_FAILED` state (recovered via `firewall-offline-cmd --direct --remove-rule` + restart). A systemd unit ordered `After=docker.service` waits until DOCKER-USER exists, applies idempotently, survives reboots, and doesn't fight firewalld.
+
+## 2026-06-15 — Upgrade `vm/vagrant/kali/Vagrantfile` to multi-VM (3 slots)
+
+**What:** Rewrote the Vagrantfile to define 3 predefined VM slots (`kali1`, `kali2`, `kali3`) via an iterator over a `VMS` array constant. All slots share the same config (kalilinux/rolling box, 6 GB / 4 vCPU, SPICE + virtio GPU + 64 MB VRAM, spice-vdagent channel, synced folder disabled, provision.sh shell provisioner) defined once in the loop body. Each slot has `autostart: false` so a bare `vagrant up` (no args) is a no-op — invocation must specify which slot.
+
+**Why:** HTB workflow needs the ability to pause one VM (preserve state mid-challenge) and switch to another. Predefined slots show all three in `vagrant status` at once; numbered names keep them generic per challenge. Adding a 4th slot is a one-element edit to the `VMS` array. `autostart: false` prevents `vagrant up` from accidentally booting all three at once (each is 6 GB RAM).
+
+## 2026-06-15 — Add `vm/` stow package: Kali HTB VMs via Vagrant + libvirt
+
+**What:** Created `vm/vagrant/kali/Vagrantfile` (kalilinux/rolling box, 6 GB RAM, 4 vCPUs, SPICE graphics with virtio video + 64 MB VRAM, spice-vdagent channel for clipboard/resize, default `/vagrant` synced folder disabled to avoid NFS dependency) and `vm/vagrant/kali/provision.sh` (first-boot installer for `spice-vdagent`, `nmap`, `gobuster`, `ffuf`, `seclists`, `burpsuite`). Added `vm/.stow-local-ignore` matching `^vagrant$` so `stow vm` is a no-op (the package claims a slot in the for-loop but the Vagrantfile is invoked by absolute path, never symlinked into `~`). Patched top-level `README.md` "Dependencies" block with `sudo dnf install @virtualization vagrant vagrant-libvirt virt-manager virt-viewer libvirt-daemon-config-network spice-vdagent` + `systemctl enable --now libvirtd` + `usermod -aG libvirt $USER`. Added `.vagrant/` to `.gitignore` (per-VM state directory auto-generated next to the Vagrantfile).
+
+**Why:** HackTheBox / CTF workflow needs throwaway Kali VMs that never trigger an installer — `vagrant destroy && vagrant up` rebuilds a clean box from the pre-built kalilinux/rolling image in ~5 min, zero clicks. vagrant-libvirt chosen over VirtualBox to avoid DKMS kernel-module churn on Fedora kernel updates; libvirt+KVM is in-kernel. Provisioner deliberately minimal (no ~3 GB `kali-linux-default` metapackage) to keep first-boot fast. No helper scripts and no `setup.sh` — matches the existing dotfiles convention of inline install in the top-level README. Helper scripts (`kali-fresh`, etc.), libvirt snapshot tooling, Parrot OS, and isolated networks explicitly out of scope for v1.
+
 ## 2026-06-12 — Surgical patch to /handoff skill
 
 **What:** Patched `claude/.claude/skills/handoff/SKILL.md` (stow-linked → `~/.claude/skills/handoff/SKILL.md`). Artifact template: added a `branch · sha · dirty · status · UTC` anchor line at top, claim-based State with `(verified: cmd)` / `(unverified)` / IN FLIGHT / TODO labels, new `## Key values` section for blur-resistant data (MACs, IDs, thresholds, endpoints), `## Gotchas` renamed to `## Landmines` with if-then root-caused form, `## Next` retagged `## Next action [SAFE | CONFIRM-FIRST]`, and section order reshuffled so Next action sits at the end (after Landmines). Rules section grew 5 → 8: budget 5-15 → 15-25 lines, Rule 3 folds in the if-then form, Rule 4 softens for bare TODO bullets (dropped the dead Windows clause); new Rules 6/7/8 define the status enum, guard `verified` against rubber-stamping, and list CONFIRM-FIRST criteria.

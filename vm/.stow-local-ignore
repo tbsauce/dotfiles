@@ -1,0 +1,3 @@
+# vm/ is a data dir, not a dotfile target.
+# Vagrantfile is invoked by absolute path: cd ~/dotfiles/vm/vagrant/kali && vagrant up
+^vagrant$

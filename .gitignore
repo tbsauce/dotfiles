@@ -41,3 +41,6 @@ __pycache__/
 *.pyc
 node_modules/
 .cache/
+
+# Vagrant runtime state
+.vagrant/

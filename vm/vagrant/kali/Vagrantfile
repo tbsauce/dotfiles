@@ -1,0 +1,32 @@
+# Kali Linux VMs for HackTheBox / CTF practice.
+# Declarative — `vagrant up <name>` boots one; `vagrant halt <name>` pauses; `vagrant destroy <name>` nukes.
+# Edit VMS below to add or remove slots.
+# Requires: vagrant, vagrant-libvirt, libvirt, qemu-kvm (see top-level README).
+
+VMS = ["kali1", "kali2", "kali3"]
+
+Vagrant.configure("2") do |config|
+  VMS.each do |name|
+    config.vm.define name, autostart: false do |k|
+      k.vm.box      = "kalilinux/rolling"
+      k.vm.hostname = name
+
+      k.vm.synced_folder ".", "/vagrant", disabled: true
+
+      k.vm.provider :libvirt do |v|
+        v.memory = 6144
+        v.cpus   = 4
+
+        v.graphics_type = "spice"
+        v.video_type    = "virtio"
+        v.video_vram    = 65536
+
+        v.channel :type        => "spicevmc",
+                  :target_name => "com.redhat.spice.0",
+                  :target_type => "virtio"
+      end
+
+      k.vm.provision "shell", path: "provision.sh"
+    end
+  end
+end
