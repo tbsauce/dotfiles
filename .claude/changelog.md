@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-06-25 — Re-stow claude package (fix settings.json drift)
+
+**What:** Ran `stow --adopt claude` from `~/dotfiles`. The live `~/.claude/settings.json` was a real file (not a symlink) and had drifted from the repo copy — it carried the correct current content (`"tui": "fullscreen"` plus the GitKraken cleanup) while the repo copy was stale. `--adopt` moved the live file into `~/dotfiles/claude/.claude/settings.json` and replaced it with a symlink.
+
+**Why:** settings.json had become a standalone real file, so edits weren't flowing to the repo and `stow claude` would have conflicted. Verified before adopting that every other package file was byte-identical between live and repo (only settings.json differed), so adopt was non-destructive. After: the whole `claude` package is correctly linked — `CLAUDE.md`, `statusline.sh`, `settings.json` are file symlinks, and the five skill dirs (`council`, `handoff`, `learn`, `reflect`, `skill-creator`) are folded directory symlinks into the repo. Leaves `claude/.claude/settings.json` modified in git (uncommitted).
+
+## 2026-06-25 — Uninstall GitKraken (full wipe)
+
+**What:** Removed the system Flatpak `com.axosoft.GitKraken` (v12.0.1) via `flatpak uninstall --system --delete-data -y`, then deleted leftover home-dir data: `~/.gitkraken` and `~/.local/share/kraken`.
+
+**Why:** User no longer wanted GitKraken installed and chose a complete removal. It was a system Flatpak (not an RPM), so removal went through Flatpak with `--delete-data` to clear the sandbox, plus manual cleanup of the two config/cache dirs Flatpak leaves in `$HOME`. Verified: no kraken entry in `flatpak list`, both home dirs gone.
+
+**Follow-up:** GitKraken had also installed a Claude Code plugin (`gitkraken-hooks@gitkraken`) that registered a `gk ai hook run` command on every lifecycle event (SessionStart, UserPromptSubmit, PreToolUse, etc.). After the uninstall the `gk` binary was gone, so every prompt threw a hook error. Removed it fully: dropped `enabledPlugins` + `extraKnownMarketplaces` blocks from `~/.claude/settings.json`, deleted `~/.claude/plugins/marketplaces/gitkraken` and `~/.claude/plugins/cache/gitkraken`, and cleared the gitkraken entries from `installed_plugins.json` and `known_marketplaces.json`. All three JSON files re-validated. The hook only fed session activity to the GitKraken app — no loss of Claude Code functionality.
+
 ## 2026-06-16 — Alias `vagrant` to force `TERM=xterm-256color`
 
 **What:** Added `alias vagrant='TERM=xterm-256color vagrant'` to `zsh/.zshrc` in a new Vagrant section between the git shortcuts (`alias lg='lazygit'`) and the FZF Catppuccin block.

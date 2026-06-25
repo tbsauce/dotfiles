@@ -32,5 +32,6 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-daltonized",
   "verbose": false,
-  "autoCompactEnabled": true
+  "autoCompactEnabled": true,
+  "tui": "fullscreen"
 }
