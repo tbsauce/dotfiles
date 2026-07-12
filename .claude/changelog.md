@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-09 — Fix Spotify silent-exit (stale singleton locks)
+
+**What:** Removed stale `SingletonLock`, `SingletonSocket`, `SingletonCookie` symlinks from `~/.var/app/com.spotify.Client/cache/spotify/`. Spotify was launching then exiting immediately — same signature as the 2026-04-25 fix (no running process, but the three `Singleton*` links present from a 2026-06-30 session).
+
+**Why:** Chromium's single-instance enforcement saw the leftover locks and self-terminated the new process. Documented in `.claude/dossiers/flatpak-spotify-singleton-lock.md`. Recurring issue.
+
 ## 2026-06-25 — Re-stow claude package (fix settings.json drift)
 
 **What:** Ran `stow --adopt claude` from `~/dotfiles`. The live `~/.claude/settings.json` was a real file (not a symlink) and had drifted from the repo copy — it carried the correct current content (`"tui": "fullscreen"` plus the GitKraken cleanup) while the repo copy was stale. `--adopt` moved the live file into `~/dotfiles/claude/.claude/settings.json` and replaced it with a symlink.
@@ -274,3 +280,16 @@ Re-paired MX Master 4 (MAC rotated from `:EE` to `:EF` after restart). Paired Ro
 - `firewall-cmd --list-all` — denied (needs sudo, skipped)
 
 **Why:** Establish guardrails, audit trail, and knowledge-building system before any dotfiles work begins. Everything after this gets logged and lessons accumulate locally.
+
+---
+
+## 2026-06-27 — Kali VM memory footprint fix (anti-freeze)
+
+**Problem:** `vagrant up kali1` froze the host (15 GB RAM); VM was set to 6144 MB + desktop apps → OOM thrash, forced hard reboot.
+
+**Changed:**
+- `vm/vagrant/kali/Vagrantfile` — lowered `v.memory` 6144 → 4096 MB (CPUs kept at 4); extracted `VM_MEMORY`/`VM_CPUS` constants. Added a `trigger.before :up` guard that reads `/proc/meminfo` MemAvailable and aborts boot if free RAM < VM_MEMORY + 2048 MB reserve.
+
+**Verified:** `ruby -c Vagrantfile` → Syntax OK; `vagrant validate` → validated successfully.
+
+**Note:** Takes effect on next `vagrant reload`/`up`; running kali1 untouched.

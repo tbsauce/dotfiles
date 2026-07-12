@@ -5,6 +5,15 @@
 
 VMS = ["kali1", "kali2", "kali3"]
 
+# Per-VM footprint. On a 15 GB laptop, 4096 leaves headroom for the desktop
+# while still allowing two VMs at once. Bump per-VM only if you close other apps.
+VM_MEMORY = 4096
+VM_CPUS   = 4
+
+# Refuse to boot if the host doesn't have this much RAM free (MB) AFTER the VM
+# takes its share. Prevents the OOM-thrash hard-freeze that forces a reboot.
+HOST_RESERVE_MB = 2048
+
 Vagrant.configure("2") do |config|
   VMS.each do |name|
     config.vm.define name, autostart: false do |k|
@@ -13,9 +22,23 @@ Vagrant.configure("2") do |config|
 
       k.vm.synced_folder ".", "/vagrant", disabled: true
 
+      # Guard: abort `vagrant up` if booting this VM would starve the host.
+      k.trigger.before :up do |t|
+        t.ruby do |env, machine|
+          avail_kb = File.read("/proc/meminfo")[/MemAvailable:\s+(\d+)/, 1].to_i
+          avail_mb = avail_kb / 1024
+          if avail_mb < VM_MEMORY + HOST_RESERVE_MB
+            abort("\e[31mRefusing to boot #{name}: only #{avail_mb} MB free, " \
+                  "need #{VM_MEMORY + HOST_RESERVE_MB} MB " \
+                  "(#{VM_MEMORY} for the VM + #{HOST_RESERVE_MB} reserve).\n" \
+                  "Close apps or halt another VM first.\e[0m")
+          end
+        end
+      end
+
       k.vm.provider :libvirt do |v|
-        v.memory = 6144
-        v.cpus   = 4
+        v.memory = VM_MEMORY
+        v.cpus   = VM_CPUS
 
         v.graphics_type = "spice"
         v.video_type    = "virtio"

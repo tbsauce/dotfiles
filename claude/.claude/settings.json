@@ -22,6 +22,7 @@
       "Bash(ls:*)"
     ]
   },
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash $HOME/.claude/statusline.sh",
@@ -29,9 +30,10 @@
   },
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "stable",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
   "theme": "dark-daltonized",
   "verbose": false,
-  "autoCompactEnabled": true,
-  "tui": "fullscreen"
+  "autoCompactEnabled": true
 }
