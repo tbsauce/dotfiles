@@ -1,5 +1,73 @@
 # Changelog
 
+## 2026-08-01 — GRUB theme: Pochita (HyDE) recolored to Catppuccin Macchiato
+
+**What:** Adopted the Pochita GRUB theme from HyDE-Project/hyde (Source/arcs/Grub_Pochita.tar.gz — the cute Chainsaw Man mascot), recolored from its original Catppuccin Latte (light) to our Macchiato (dark).
+
+**Changes vs upstream:**
+- background.png → solid #24273a base (was near-white Latte)
+- item_color #4C4F69 → #cad3f5; selected_item_color → #24273a (dark text on blue bar)
+- select_*.png selection caps recolored to blue #8aadf4 (alpha shape preserved via `-fill … -colorize 100`)
+- countdown label color → #a5adcb
+- Font swapped Unifont → JetBrains Bold 16 (`grub2-mkfont`), dropped bundled font.pf2, to match system font
+- Kept Pochita logo.png + all 72 OS icons (incl. fedora.png)
+
+**Files (repo only — no system change yet):** `grub/pochita/{theme.txt,background.png,logo.png,jetbrains-bold-16.pf2,select_*.png,icons/}`, `grub/install.sh`, `grub/uninstall.sh`
+
+**Install/revert (needs sudo — user runs):** `~/dotfiles/grub/install.sh` / `~/dotfiles/grub/uninstall.sh`
+
+**Fix (same day):** First boot failed with `png.c:310: bit depth must be 8 or 16` — the generated background + recolored select_*.png were palette PNGs (sub-8-bit IHDR). Re-encoded ALL 77 theme PNGs to forced 8-bit truecolor RGBA (`magick -type TrueColorAlpha -define png:color-type=6 -define png:bit-depth=8`, via temp files). Verified with `file` = "8-bit/color RGBA". User to re-run install.sh.
+
+## 2026-07-20 — Fix black-screen-after-lock (AMD s2idle suspend never wakes)
+
+**Symptom:** Locked the PC + closed the lid, came back to a black screen — machine powered but display dead, forcing a hard power-off every time. Reboot history was full of `crash` entries.
+
+**Root cause:** Closing the lid triggered `systemd-logind` suspend → `PM: suspend entry (s2idle)`, and the AMD **Barcelo** APU (`1002:15e7`) never resumed the display. BIOS only exposes `s2idle` (no deep S3 — `/sys/power/mem_sleep` = `[s2idle]` only), and s2idle resume is broken on this chip. 4 of the last 5 shutdowns ended immediately after `suspend entry (s2idle)` with no resume.
+
+**Fix:** Created `/etc/systemd/logind.conf.d/nosleep.conf` → `HandleLidSwitch=lock`, `HandleLidSwitchExternalPower=lock`, `HandleLidSwitchDocked=ignore`, `IdleAction=ignore`. Restarted `systemd-logind` (session + xss-lock survived). Lid close / idle now just locks the screen (xss-lock picks up the logind Lock signal); the machine never enters the broken s2idle path. Verified live via `busctl`.
+
+**Tradeoff:** Slightly higher idle draw (screen-off ~5–10W vs ~3W sleep), but this machine's s2idle barely saved power anyway. No more black screen / hard resets.
+
+## 2026-07-18 — Stable Stremio: web UI + standalone streaming server (ditch buggy v1.x shell)
+
+**What:** The Flatpak `com.stremio.Stremio` is the new v1.0.3 Rust/WebKitGTK shell — buggy (freezes, black video, background hangs). Flathub no longer retains v4.4 (only 8 commits, all v1.x). Downloaded the official v4.4.168 `.deb` from dl.strem.io → extracted (no install) into `~/.local/opt/stremio-4.4/`. Main Qt binary needs `libcrypto.so.1.1` + `libmpv.so.1` (absent on F43) — skipped that. Instead ran the extracted `server.js` (official streaming server) directly on system Node v22 → listening on `:11470`, found ffmpeg/ffprobe, detected external MPV/VLC. Paired with Stremio Web in Firefox = full stable playback, no old libs, no sudo.
+
+**Why:** server.js only needs Node; sidesteps both the buggy shell and the old Qt/OpenSSL1.1/libmpv.so.1 dependency hell. Casting to native MPV avoids browser video issues entirely.
+
+**Note:** streaming server currently started manually (`setsid -f node ~/.local/opt/stremio-4.4/tree/opt/stremio/server.js`). TODO: autostart via i3 exec_always or systemd --user unit. App data in `~/.local/opt/` + `~/.stremio-server/` (not dotfiles-tracked).
+
+## 2026-07-18 — REAL CAUSE: picom use-damage artifact (not a Stremio bug)
+
+**What:** After a screenshot, the "fuzzy" turned out to be a full-screen torn/static band at the top of the display when switching GPU apps (Firefox, Stremio) — a compositor artifact, NOT Stremio's window. picom v13 was running with `use-damage = true` + glx backend + gaussian blur on amdgpu, which leaves stale framebuffer garbage in "undamaged" regions after a fullscreen GPU app releases the screen. Fix: set `use-damage = false;` in `~/.config/picom/picom.conf`, restarted picom.
+
+**Also:** the earlier Stremio flatpak overrides (`LIBGL_ALWAYS_SOFTWARE=1` etc.) were the WRONG fix — they caused BLACK video (working controls/audio, black picture) because forcing software GL breaks mpv's GPU video output. Reset with `flatpak override --user --reset com.stremio.Stremio`. Stremio now runs clean; picom fix handles the display artifact.
+
+**Note:** live `~/.config/picom/picom.conf` is a real file, NOT a stow symlink — drifted from `~/dotfiles/picom/`. Needs reconciliation once the fix is confirmed.
+
+## 2026-07-18 — Fix Stremio fuzzy/garbled window (WebKitGTK render glitch on AMD) [SUPERSEDED — see above]
+
+**What:** Stremio's window rendered garbled/fuzzy (unreadable) on the AMD Barcelo iGPU. First tried `WEBKIT_DISABLE_DMABUF_RENDERER=1` alone — glitch RECURRED. Escalated to forcing full software rendering. Permanent override now carries all three:
+```
+flatpak override --user \
+  --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+  --env=WEBKIT_DISABLE_COMPOSITING_MODE=1 \
+  --env=LIBGL_ALWAYS_SOFTWARE=1 \
+  com.stremio.Stremio
+```
+Verified clean after relaunch. Undo: `flatpak override --user --reset com.stremio.Stremio`.
+
+**Why:** WebKitGTK's GPU rendering path (DMABUF + compositing) glitches on this AMD iGPU inside the flatpak sandbox. DMABUF-only wasn't enough; `LIBGL_ALWAYS_SOFTWARE=1` (llvmpipe) forces CPU rendering so the GPU can't produce the artifact. Tradeoff: higher CPU, possibly choppy on high-res video — revisit if playback suffers. User-level override, no install.
+
+**Launch caveat:** don't launch the flatpak GUI via a tracked background Bash task — killing the task kills the app. Use `setsid -f flatpak run ...` to detach.
+
+**Still open:** (1) playback-freeze — user to toggle Settings → Player → Hardware-accelerated decoding OFF; (2) won't-quit/no-tray on i3+polybar (snixembed not in Fedora repos) — deferred, pragmatic keybind route recommended.
+
+## 2026-07-18 — Kill stuck Stremio background processes
+
+**What:** Stremio (Flatpak `com.stremio.Stremio`) stayed running after the window was closed — 5 processes including a WebKit render process at ~23% CPU and the Node streaming server. Ran `flatpak kill com.stremio.Stremio`; verified `pgrep -i stremio` returns none.
+
+**Why:** Stremio launches with `--gapplication-service`, so closing the window leaves the background service alive. `flatpak kill` tears down the whole sandbox cleanly.
+
 ## 2026-07-09 — Fix Spotify silent-exit (stale singleton locks)
 
 **What:** Removed stale `SingletonLock`, `SingletonSocket`, `SingletonCookie` symlinks from `~/.var/app/com.spotify.Client/cache/spotify/`. Spotify was launching then exiting immediately — same signature as the 2026-04-25 fix (no running process, but the three `Singleton*` links present from a 2026-06-30 session).

@@ -35,5 +35,6 @@
   "skipWorkflowUsageWarning": true,
   "theme": "dark-daltonized",
   "verbose": false,
-  "autoCompactEnabled": true
+  "autoCompactEnabled": true,
+  "effortLevel": "high"
 }
