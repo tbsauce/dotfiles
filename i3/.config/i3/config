@@ -203,5 +203,9 @@ client.background       $base
 # Window borders
 default_border pixel 2
 default_floating_border pixel 2
+
+# Minecraft launcher is Chromium/CEF — its popups break when tiled (GDK frame-clock
+# assertion + X WindowError, window hangs). Float it so it manages its own windows.
+for_window [class="(?i)minecraft launcher"] floating enable
 gaps inner 6
 gaps outer 2

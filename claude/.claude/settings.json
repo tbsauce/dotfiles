@@ -14,8 +14,6 @@
       "Bash(git restore --staged:*)",
       "Bash(docker compose:*)",
       "Bash(docker:*)",
-      "Bash(python3:*)",
-      "Bash(python:*)",
       "Skill(reflect)",
       "Skill(learn)",
       "WebSearch",
@@ -28,6 +26,7 @@
     "command": "bash $HOME/.claude/statusline.sh",
     "padding": 0
   },
+  "effortLevel": "high",
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
@@ -36,5 +35,37 @@
   "theme": "dark-daltonized",
   "verbose": false,
   "autoCompactEnabled": true,
-  "effortLevel": "high"
+  "agentPushNotifEnabled": false,
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(obsidian:*) — read-only and link-preserving vault commands (files, folders, properties, links, backlinks, unresolved, orphans, deadends, tags, tag, search, move, rename) against vault=MyBrain in /home/tsauce/MyBrain"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured — personal GitHub account `tbsauce` (github.com:tbsauce/MyBrain.git)",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: private (gh API: tbsauce/MyBrain is private)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured — repo .gitignore excludes `Career/.env`, so local dotenv files are the only observed secret store and must never be read out or committed",
+      "**Default / protected branches**: default branch `master`; no classic protected branches listed and rulesets not queryable here, so treat `master` as unprotected but still confirm force-pushes and history rewrites",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo and its remote(s) only (no additional orgs configured) — github.com:tbsauce/MyBrain.git (private)",
+      "**Trusted internal domains**: None configured — read-only fetches in this project went to raw.githubusercontent.com, api.github.com, git.savannah.gnu.org",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured — local Obsidian instance driven via the `obsidian` CLI (vault=MyBrain) is the only recurring service",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar. In this repo specifically: `Career/` (CV, profile, applications, story bank, writing samples — personal career data), `Career/.env`, `Journal/` (personal daily log), and `.claude/skills/career-ops/_profile.md` (personal profile and career context)",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches `prod-db`, not `producer`)",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: personal knowledge-management work in the MyBrain Obsidian vault — writing, polishing, organizing and linking notes; plus the local `career-ops` skill over `Career/`",
+      "**Trusted repo**: /home/tsauce/MyBrain and its remote github.com:tbsauce/MyBrain.git (private). Confidential material is fine to commit there; secrets and personal/entrusted data are never cleared into any repo by its visibility",
+      "**Org-specific CLIs**: `obsidian` (29x in this project's transcripts — vault=MyBrain move/rename/backlinks/tags/search); `defuddle` documented in a repo skill but not observed in usage",
+      "**Routine under Career/ prefix**: reads and writes under `Career/` are routine for the career-ops workflow, but the contents are personal data — never publish, upload, or paste them outside this private repo without confirmation"
+    ]
+  }
 }
