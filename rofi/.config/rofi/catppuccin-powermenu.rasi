@@ -1,12 +1,8 @@
+/* Palette comes from colors.rasi — a generated symlink ->
+   colors-macchiato.rasi | colors-latte.rasi. Switch: theme light|dark|toggle */
+@import "colors.rasi"
+
 * {
-    bg-col:  #24273a;
-    bg-col-light: #363a4f;
-    border-col: #8aadf4;
-    selected-col: #363a4f;
-    blue: #8aadf4;
-    fg-col: #cad3f5;
-    fg-col2: #ed8796;
-    grey: #6e738d;
     font: "JetBrainsMono Nerd Font 26";
 }
 

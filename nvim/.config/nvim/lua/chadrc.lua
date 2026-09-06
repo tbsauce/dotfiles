@@ -5,8 +5,21 @@
 ---@type ChadrcConfig
 local M = {}
 
+-- Flavor follows the system theme switcher (`theme light` / `theme dark`).
+-- State file is written by ~/.local/bin/theme; defaults to macchiato if absent.
+local function system_flavor()
+	local f = io.open(os.getenv("HOME") .. "/.local/state/theme/flavor", "r")
+	if not f then
+		return "macchiato"
+	end
+	local v = f:read("l")
+	f:close()
+	return v == "latte" and "latte" or "macchiato"
+end
+
 M.base46 = {
-	theme = "catppuccin",
+	-- catppuccin-latte ships with base46; "catppuccin" is Mocha, overridden to Macchiato below
+	theme = system_flavor() == "latte" and "catppuccin-latte" or "catppuccin",
 
 	-- Override base46's catppuccin (Mocha) with Macchiato palette
 	changed_themes = {

@@ -45,13 +45,9 @@ alias lg='lazygit'
 # Vagrant — force safe TERM so `vagrant ssh` doesn't garble input under kitty
 alias vagrant='TERM=xterm-256color vagrant'
 
-# ── FZF — Catppuccin Macchiato ──
-export FZF_DEFAULT_OPTS=" \
---color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
---color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
---color=marker:#f4dbd6,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796 \
---color=selected-bg:#494d64 \
---multi"
+# ── FZF — Catppuccin (flavor switched by `theme`) ──
+# fzf.sh is a generated symlink -> fzf-macchiato.sh | fzf-latte.sh
+[[ -r ~/.config/theme/fzf.sh ]] && source ~/.config/theme/fzf.sh
 
 # Use fd for fzf
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'

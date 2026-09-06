@@ -16,7 +16,7 @@ EXT_ONLY="󰍹  External only"
 LAP_ONLY="󰌢  Laptop only"
 
 chosen=$(printf "%s\n%s\n%s\n%s\n%s" "$MIRROR" "$EXTEND_R" "$EXTEND_L" "$EXT_ONLY" "$LAP_ONLY" | \
-    rofi -dmenu -theme catppuccin-macchiato-powermenu -p "Display")
+    rofi -dmenu -theme catppuccin-powermenu -p "Display")
 
 [ -z "$chosen" ] && exit 0
 

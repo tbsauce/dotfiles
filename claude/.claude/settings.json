@@ -32,7 +32,7 @@
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "dark-daltonized",
+  "theme": "auto",
   "verbose": false,
   "autoCompactEnabled": true,
   "agentPushNotifEnabled": false,

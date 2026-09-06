@@ -1,0 +1,96 @@
+# Catppuccin Latte (contrast-corrected) for Yazi
+
+[manager]
+cwd = { fg = "#00686a" }
+
+hovered = { fg = "#eff1f5", bg = "#165eed" }
+preview_hovered = { underline = true }
+
+find_keyword = { fg = "#8c5500", bold = true, italic = true, underline = true }
+find_position = { fg = "#ba4a00", bg = "reset", italic = true }
+
+marker_selected = { fg = "#1e7800", bg = "#1e7800" }
+marker_copied = { fg = "#8c5500", bg = "#8c5500" }
+marker_cut = { fg = "#d20f39", bg = "#d20f39" }
+
+tab_active = { fg = "#eff1f5", bg = "#165eed" }
+tab_inactive = { fg = "#4c4f69", bg = "#ccd0da" }
+tab_width = 1
+
+border_symbol = "│"
+border_style = { fg = "#83869a" }
+
+[status]
+separator_open = ""
+separator_close = ""
+separator_style = { fg = "#ccd0da", bg = "#ccd0da" }
+
+mode_normal = { fg = "#eff1f5", bg = "#165eed", bold = true }
+mode_select = { fg = "#eff1f5", bg = "#1e7800", bold = true }
+mode_unset = { fg = "#eff1f5", bg = "#8838ef", bold = true }
+
+progress_label = { fg = "#4c4f69", bold = true }
+progress_normal = { fg = "#165eed", bg = "#ccd0da" }
+progress_error = { fg = "#d20f39", bg = "#ccd0da" }
+
+permissions_t = { fg = "#165eed" }
+permissions_r = { fg = "#8c5500" }
+permissions_w = { fg = "#d20f39" }
+permissions_x = { fg = "#1e7800" }
+permissions_s = { fg = "#676a80" }
+
+[input]
+border = { fg = "#165eed" }
+title = {}
+value = {}
+selected = { reversed = true }
+
+[select]
+border = { fg = "#165eed" }
+active = { fg = "#8838ef" }
+inactive = {}
+
+[tasks]
+border = { fg = "#165eed" }
+title = {}
+hovered = { underline = true }
+
+[which]
+mask = { bg = "#ccd0da" }
+cand = { fg = "#00686a" }
+rest = { fg = "#676a80" }
+desc = { fg = "#8838ef" }
+separator = "  "
+separator_style = { fg = "#bcc0cc" }
+
+[help]
+on = { fg = "#8838ef" }
+run = { fg = "#00686a" }
+desc = { fg = "#676a80" }
+hovered = { bg = "#ccd0da", bold = true }
+footer = { fg = "#4c4f69", bg = "#eff1f5" }
+
+[filetype]
+rules = [
+    { mime = "image/*", fg = "#00686a" },
+    { mime = "video/*", fg = "#8c5500" },
+    { mime = "audio/*", fg = "#8c5500" },
+    { mime = "application/zip", fg = "#8838ef" },
+    { mime = "application/gzip", fg = "#8838ef" },
+    { mime = "application/x-tar", fg = "#8838ef" },
+    { mime = "application/x-bzip2", fg = "#8838ef" },
+    { mime = "application/x-7z-compressed", fg = "#8838ef" },
+    { mime = "application/x-rar", fg = "#8838ef" },
+    { name = "*.md", fg = "#8c5500" },
+    { name = "*.rs", fg = "#ba4a00" },
+    { name = "*.py", fg = "#1e7800" },
+    { name = "*.js", fg = "#8c5500" },
+    { name = "*.ts", fg = "#165eed" },
+    { name = "*.lua", fg = "#165eed" },
+    { name = "*.toml", fg = "#ba4a00" },
+    { name = "*.json", fg = "#8c5500" },
+    { name = "*.yml", fg = "#d20f39" },
+    { name = "*.yaml", fg = "#d20f39" },
+    { name = "*", fg = "#4c4f69" },
+    { name = "*/", fg = "#165eed" },
+]

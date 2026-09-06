@@ -1,0 +1,58 @@
+/* Catppuccin chrome for Firefox — Latte in light mode, Macchiato in dark mode.
+ *
+ * Requires the built-in "System theme — auto" to be the active theme; that is what
+ * makes Firefox re-evaluate prefers-color-scheme when xdg-desktop-portal reports a
+ * change, which is what `theme light` / `theme dark` triggers.
+ *
+ * Installed by ~/dotfiles/firefox/install.sh. Delete the chrome/ dir to revert to
+ * plain Firefox light/dark without losing the automatic switching. */
+
+:root {
+  /* Catppuccin Macchiato (dark is the default so a missing media query is safe) */
+  --ctp-base:     #24273a;
+  --ctp-mantle:   #1e2030;
+  --ctp-crust:    #181926;
+  --ctp-surface0: #363a4f;
+  --ctp-surface1: #494d64;
+  --ctp-text:     #cad3f5;
+  --ctp-subtext0: #a5adcb;
+  --ctp-blue:     #8aadf4;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Catppuccin Latte */
+    --ctp-base:     #eff1f5;
+    --ctp-mantle:   #e6e9ef;
+    --ctp-crust:    #dce0e8;
+    --ctp-surface0: #ccd0da;
+    --ctp-surface1: #bcc0cc;
+    --ctp-text:     #4c4f69;
+    --ctp-subtext0: #6c6f85;
+    --ctp-blue:     #1e66f5;
+  }
+}
+
+:root {
+  --toolbar-bgcolor:            var(--ctp-mantle) !important;
+  --toolbar-color:              var(--ctp-text) !important;
+  --tabpanel-background-color:  var(--ctp-base) !important;
+  --toolbar-field-background-color: var(--ctp-surface0) !important;
+  --toolbar-field-color:            var(--ctp-text) !important;
+  --toolbar-field-focus-background-color: var(--ctp-base) !important;
+  --toolbar-field-focus-border-color:     var(--ctp-blue) !important;
+  --lwt-accent-color:           var(--ctp-crust) !important;
+  --tab-selected-bgcolor:       var(--ctp-base) !important;
+  --tab-selected-textcolor:     var(--ctp-text) !important;
+  --arrowpanel-background:      var(--ctp-mantle) !important;
+  --arrowpanel-color:           var(--ctp-text) !important;
+  --arrowpanel-border-color:    var(--ctp-surface0) !important;
+  --panel-separator-color:      var(--ctp-surface0) !important;
+}
+
+#navigator-toolbox { border-bottom: 1px solid var(--ctp-surface0) !important; }
+#TabsToolbar, #nav-bar, #PersonalToolbar { background-color: var(--ctp-mantle) !important; }
+.tab-background[selected] { background-color: var(--ctp-base) !important; }
+.tab-line[selected] { background-color: var(--ctp-blue) !important; }
+#urlbar-background, #searchbar { background-color: var(--ctp-surface0) !important; }
+#urlbar[focused] > #urlbar-background { border-color: var(--ctp-blue) !important; }

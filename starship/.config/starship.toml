@@ -1,6 +1,6 @@
-# Starship prompt — Catppuccin Macchiato
+# Starship prompt — Catppuccin (palette line switched by `theme`)
 
-palette = "catppuccin_macchiato"
+palette = "catppuccin_latte"
 
 format = """
 $line_break\
@@ -62,3 +62,34 @@ surface0 = "#363a4f"
 base = "#24273a"
 mantle = "#1e2030"
 crust = "#181926"
+
+[palettes.catppuccin_latte]
+# Contrast-corrected Latte: accents darkened in OKLCH with hue held, all >=4.5:1
+# on base #eff1f5. overlay0/overlay1 are raised because the prompt frame and the
+# "on" connector are drawn with them and stock Latte puts them at 2.3-2.8:1.
+rosewater = "#c67260"
+flamingo = "#aa414b"
+pink = "#b9349c"
+mauve = "#8838ef"
+red = "#d20f39"
+maroon = "#a61b22"
+peach = "#ba4a00"
+yellow = "#8c5500"
+green = "#1e7800"
+teal = "#00686a"
+sky = "#0073b0"
+sapphire = "#007486"
+blue = "#165eed"
+lavender = "#4b4dcd"
+text = "#4c4f69"
+subtext1 = "#5c5f77"
+subtext0 = "#676a80"
+overlay2 = "#73768a"
+overlay1 = "#73768a"
+overlay0 = "#676a80"
+surface2 = "#acb0be"
+surface1 = "#bcc0cc"
+surface0 = "#ccd0da"
+base = "#eff1f5"
+mantle = "#e6e9ef"
+crust = "#dce0e8"

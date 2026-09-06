@@ -1,0 +1,15 @@
+/* Catppuccin Latte (contrast-corrected) — rofi palette */
+configuration {
+    icon-theme: "Papirus-Light";
+}
+
+* {
+    bg-col:       #eff1f5;
+    bg-col-light: #ccd0da;
+    border-col:   #165eed;
+    selected-col: #ccd0da;
+    blue:         #165eed;
+    fg-col:       #4c4f69;
+    fg-col2:      #d20f39;
+    grey:         #676a80;
+}

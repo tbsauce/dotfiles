@@ -8,14 +8,14 @@ REBOOT="󰜉"
 SHUTDOWN="󰐥"
 
 chosen=$(printf "%s\n%s\n%s\n%s\n%s" "$LOCK" "$LOGOUT" "$SUSPEND" "$REBOOT" "$SHUTDOWN" | \
-    rofi -dmenu -theme catppuccin-macchiato-powermenu -p "Power" -selected-row 0)
+    rofi -dmenu -theme catppuccin-powermenu -p "Power" -selected-row 0)
 
 [ -z "$chosen" ] && exit 0
 
 confirm_action() {
     local ans
     ans=$(printf "󰅖\n󰄬" | \
-        rofi -dmenu -theme catppuccin-macchiato-confirm -p "Confirm" -mesg "Are you sure?")
+        rofi -dmenu -theme catppuccin-confirm -p "Confirm" -mesg "Are you sure?")
     [ "$ans" = "󰄬" ]
 }
 

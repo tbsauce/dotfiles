@@ -1,0 +1,24 @@
+gui:
+  nerdFontsVersion: "3"
+  theme:
+    activeBorderColor:
+      - "#165eed" # Blue
+      - bold
+    inactiveBorderColor:
+      - "#676a80" # Subtext0
+    optionsTextColor:
+      - "#165eed" # Blue
+    selectedLineBgColor:
+      - "#ccd0da" # Surface0
+    cherryPickedCommitBgColor:
+      - "#bcc0cc" # Surface1
+    cherryPickedCommitFgColor:
+      - "#165eed" # Blue
+    unstagedChangesColor:
+      - "#d20f39" # Red
+    defaultFgColor:
+      - "#4c4f69" # Text
+    searchingActiveBorderColor:
+      - "#8c5500" # Yellow
+  authorColors:
+    "*": "#4b4dcd" # Lavender

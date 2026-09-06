@@ -7,4 +7,4 @@ grep -E '^\s*bindsym' "$CONFIG" | \
     sed 's/^\s*bindsym\s\+//' | \
     sed 's/--no-startup-id //' | \
     sed 's/exec //' | \
-    rofi -dmenu -theme catppuccin-macchiato -p "Keybindings" -i -no-custom
+    rofi -dmenu -theme catppuccin -p "Keybindings" -i -no-custom

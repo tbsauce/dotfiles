@@ -1,27 +1,9 @@
-# i3 config — Catppuccin Macchiato
+# i3 config — Catppuccin (flavor switched by `theme`)
 
 set $mod Mod1
 
 # Font
 font pango:JetBrainsMono Nerd Font 10
-
-# Catppuccin Macchiato colors
-set $base     #24273a
-set $mantle   #1e2030
-set $crust    #181926
-set $text     #cad3f5
-set $subtext1 #b8c0e0
-set $surface0 #363a4f
-set $surface1 #494d64
-set $surface2 #5b6078
-set $blue     #8aadf4
-set $lavender #b7bdf8
-set $teal     #8bd5ca
-set $green    #a6da95
-set $yellow   #eed49f
-set $peach    #f5a97f
-set $red      #ed8796
-set $mauve    #c6a0f6
 
 # XDG data dirs for flatpak
 exec --no-startup-id export XDG_DATA_DIRS=/var/lib/flatpak/exports/share:/home/$USER/.local/share/flatpak/exports/share:/usr/local/share:/usr/share
@@ -43,6 +25,9 @@ exec_always --no-startup-id ~/.config/polybar/launch.sh
 # Wallpaper
 exec_always --no-startup-id feh --bg-fill ~/Pictures/Wallpapers/1.jpg
 
+# Re-apply the saved light/dark flavor (regenerates colors.* links)
+exec --no-startup-id ~/.local/bin/theme apply --no-reload
+
 # Picom compositor
 exec_always --no-startup-id picom --config ~/.config/picom/picom.conf
 
@@ -53,6 +38,9 @@ exec --no-startup-id dunst
 exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lockscreen
 
 # Volume controls (PulseAudio)
+# Light/dark theme toggle (Catppuccin Latte <-> Macchiato)
+bindsym $mod+Shift+t exec --no-startup-id ~/.local/bin/theme toggle
+
 bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
@@ -191,14 +179,11 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
-# Window colors — Catppuccin Macchiato
-# class                 border    bground   text      indicator   child_border
-client.focused          $blue     $base     $text     $lavender   $blue
-client.focused_inactive $surface1 $base     $subtext1 $surface1   $surface1
-client.unfocused        $surface0 $mantle   $surface2 $surface0   $surface0
-client.urgent           $red      $base     $text     $red        $red
-client.placeholder      $base     $crust    $text     $base       $base
-client.background       $base
+# Window colors — Catppuccin. colors.conf is a generated symlink ->
+# colors-macchiato.conf | colors-latte.conf. Switch: theme light|dark|toggle
+# NOTE: i3 scopes "set $var" per file, so the palette AND the client.* lines
+# that consume it must both live inside the included file.
+include /home/tsauce/.config/i3/colors.conf
 
 # Window borders
 default_border pixel 2

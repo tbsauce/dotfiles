@@ -6,16 +6,37 @@ set -f
 input=$(cat)
 [ -z "$input" ] && printf "Claude" && exit 0
 
-# ===== Colors (Catppuccin Mocha accents — brighter than Macchiato, same family) =====
-blue='\033[38;2;137;180;250m'    # Blue    #89b4fa
-amber='\033[38;2;249;226;175m'   # Yellow  #f9e2af  (Opus tag)
-cyan='\033[38;2;148;226;213m'    # Teal    #94e2d5  (Haiku tag)
-green='\033[38;2;166;227;161m'   # Green   #a6e3a1
-orange='\033[38;2;250;179;135m'  # Peach   #fab387
-yellow='\033[38;2;249;226;175m'  # Yellow  #f9e2af
-red='\033[38;2;243;139;168m'     # Red     #f38ba8
-magenta='\033[38;2;203;166;247m' # Mauve   #cba6f7
-dim='\033[38;2;147;154;183m'     # Overlay2 #939ab7 — muted but legible
+# ===== Colors — follow the system light/dark flavor =====
+# Written by ~/.local/bin/theme. Dark keeps the original Mocha accents; light
+# uses contrast-corrected Latte, because Mocha's pastels measure 1.1-2.5:1 on a
+# light background (the Opus amber #f9e2af is 1.12:1 — invisible).
+theme_flavor=""
+[ -r "${XDG_STATE_HOME:-$HOME/.local/state}/theme/flavor" ] &&
+    read -r theme_flavor < "${XDG_STATE_HOME:-$HOME/.local/state}/theme/flavor"
+
+if [ "$theme_flavor" = "latte" ]; then
+    # Catppuccin Latte, darkened — every value >=4.5:1 on #eff1f5
+    blue='\033[38;2;11;85;234m'      # #0b55ea  5.30:1
+    amber='\033[38;2;150;92;12m'     # #965c0c  4.85:1  (Opus tag)
+    cyan='\033[38;2;19;119;124m'     # #13777c  4.69:1  (Haiku tag)
+    green='\033[38;2;49;120;33m'     # #317821  4.84:1
+    orange='\033[38;2;183;67;0m'     # #b74300  4.87:1
+    yellow='\033[38;2;150;92;12m'    # #965c0c  4.85:1
+    red='\033[38;2;210;15;57m'       # #d20f39  4.80:1
+    magenta='\033[38;2;136;57;239m'  # #8839ef  4.79:1
+    dim='\033[38;2;99;102;125m'      # #63667d  4.98:1
+else
+    # Catppuccin Mocha accents — brighter than Macchiato, same family
+    blue='\033[38;2;137;180;250m'    # Blue    #89b4fa
+    amber='\033[38;2;249;226;175m'   # Yellow  #f9e2af  (Opus tag)
+    cyan='\033[38;2;148;226;213m'    # Teal    #94e2d5  (Haiku tag)
+    green='\033[38;2;166;227;161m'   # Green   #a6e3a1
+    orange='\033[38;2;250;179;135m'  # Peach   #fab387
+    yellow='\033[38;2;249;226;175m'  # Yellow  #f9e2af
+    red='\033[38;2;243;139;168m'     # Red     #f38ba8
+    magenta='\033[38;2;203;166;247m' # Mauve   #cba6f7
+    dim='\033[38;2;147;154;183m'     # Overlay2 #939ab7
+fi
 reset='\033[0m'
 
 sep=" ${dim}│${reset} "

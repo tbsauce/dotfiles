@@ -1,7 +1,6 @@
 configuration {
     modi: "drun,run,window";
     show-icons: true;
-    icon-theme: "Papirus-Dark";
     display-drun: "";
     display-run: "";
     display-window: "";
@@ -9,4 +8,4 @@ configuration {
     placeholder: "Type to search...";
 }
 
-@theme "catppuccin-macchiato"
+@theme "catppuccin"

@@ -116,6 +116,7 @@ My personal dotfiles managed with [GNU Stow](https://www.gnu.org/software/stow/)
 | `$mod+Shift+c` | Reload i3 config |
 | `$mod+Shift+r` | Restart i3 in-place |
 | `$mod+Shift+e` | Exit i3 (with confirmation) |
+| `$mod+Shift+t` | Toggle light/dark theme (Latte ⇄ Macchiato) |
 
 ## Shell Aliases
 
@@ -202,8 +203,9 @@ fc-cache -fv
 
 ### GTK theme & cursors
 
-- **Theme:** Download `catppuccin-macchiato-blue-standard+default` from [catppuccin/gtk](https://github.com/catppuccin/gtk/releases) → extract to `~/.themes/`
+- **Themes:** Download **both** `catppuccin-macchiato-blue-standard+default` and `catppuccin-latte-blue-standard+default` from [catppuccin/gtk](https://github.com/catppuccin/gtk/releases) → extract to `~/.themes/` (the light/dark switcher needs both)
 - **Cursors:** Download `catppuccin-macchiato-dark-cursors` from [catppuccin/cursors](https://github.com/catppuccin/cursors/releases) → extract to `~/.icons/`
+- **Icons:** `Papirus-Dark` (dark) and `Papirus-Light` (light) — `sudo dnf install papirus-icon-theme`
 
 ### Deploy
 
@@ -213,9 +215,67 @@ cd ~/dotfiles
 # Stow all packages
 for dir in */; do stow "$dir"; done
 
+# REQUIRED on a new machine, before starting i3.
+# Several configs `include` a generated colors.* pointer that is gitignored and
+# therefore absent from a fresh clone; this creates them. Without it i3/kitty/
+# polybar will start with missing-include errors.
+~/.local/bin/theme apply        # or: theme dark / theme light
+
 # Set zsh as default shell
 chsh -s $(which zsh)
 ```
+
+Note: `grub/` and `firefox/` are **not** stow packages — each has its own
+`install.sh` (see the GRUB and Light/Dark sections).
+
+## Light / Dark Theme
+
+The whole desktop switches between **Catppuccin Latte** (light, for daytime) and
+**Catppuccin Macchiato** (dark) with one command:
+
+```bash
+theme light      # Latte
+theme dark       # Macchiato
+theme toggle     # flip  (also bound to $mod+Shift+T)
+theme status     # what everything is currently pointing at
+theme apply      # re-apply saved flavor (runs at i3 startup)
+```
+
+Switches live, no logout: kitty, i3, polybar, dunst, rofi, tmux, yazi, lazygit,
+bat, starship, fzf, flameshot, GTK apps, **and Firefox**.
+Running nvim instances need a restart; new shells pick up fzf/starship colors.
+
+**How it works.** Each config includes a flavor-neutral `colors.*` file which is a
+symlink the script repoints between committed `colors-macchiato.*` and
+`colors-latte.*` sources. Those pointer files are gitignored — edit the
+flavor-specific sources, never `colors.*`. A few configs (bat, starship,
+flameshot, gtk) instead have a single line rewritten in place.
+
+Current flavor is stored in `~/.local/state/theme/flavor`; nvim's `chadrc.lua`
+reads it at startup to choose base46 `catppuccin` vs `catppuccin-latte`.
+
+Because `bat/config`, `starship.toml` and `flameshot.ini` are rewritten in place,
+`git status` will show them modified after switching flavors. That is expected —
+they record whichever flavor is currently active.
+
+**Firefox** follows `gsettings color-scheme` through xdg-desktop-portal. This
+requires the built-in *"System theme — auto"* theme to be active — an add-on
+theme (e.g. "Catppuccin Macchiato - Blue" from AMO) pins websites to dark and
+breaks switching. Catppuccin colors for the Firefox chrome come from
+`firefox/chrome/userChrome.css` instead. One-time setup:
+
+```bash
+~/dotfiles/firefox/install.sh     # symlinks user.js + chrome/ into the profile
+# then: about:addons → Themes → enable "System theme — auto" → restart Firefox
+```
+
+`firefox/` is not stow-managed (profile dirs have random names), same as `grub/`.
+
+**Gotcha:** i3 scopes `set $var` per file — variables do *not* cross an `include`
+boundary. That is why `i3/colors-*.conf` contains both the palette *and* the
+`client.*` lines that consume it.
+
+**btop is intentionally excluded** — it stays Macchiato in both modes.
 
 ## Troubleshooting
 
@@ -292,7 +352,9 @@ chsh -s $(which zsh)
 | Screenshots | `~/Pictures` |
 | Custom scripts | `~/.local/bin/` |
 | Fonts | `~/.local/share/fonts/JetBrainsMono/` |
-| GTK theme | `~/.themes/` |
+| GTK themes | `~/.themes/` (macchiato + latte) |
+| Theme state | `~/.local/state/theme/flavor` |
+| Firefox profile | `~/.mozilla/firefox/e51js0wg.default-release` |
 | Cursors | `~/.icons/catppuccin-macchiato-dark-cursors/` |
 | Polybar log | `/tmp/polybar.log` |
 | Xorg log | `/var/log/Xorg.0.log` |

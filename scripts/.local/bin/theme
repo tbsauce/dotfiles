@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# theme — switch the whole desktop between Catppuccin Latte (light) and Macchiato (dark).
+#
+#   theme light     switch to Latte
+#   theme dark      switch to Macchiato
+#   theme toggle    flip to the other one
+#   theme apply     re-apply the current flavor (run at i3 startup)
+#                   --no-reload skips live reloads: at login every app is about
+#                   to start fresh anyway, and reloading i3 mid-startup re-fires
+#                   exec_always, racing polybar's own launch
+#   theme status    print the current flavor and what each app is pointing at
+#
+# How it works: every themed config either includes a neutral `colors.*` file
+# (a symlink this script repoints) or has a single flavor line this script
+# rewrites. Nothing else in your configs is touched.
+#
+# Firefox / GTK apps follow `gsettings color-scheme` through xdg-desktop-portal,
+# which is why they flip live without a restart.
+
+set -uo pipefail
+
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/theme"
+STATE_FILE="$STATE_DIR/flavor"
+DEFAULT_FLAVOR="macchiato"
+
+# Swaps target the stow repo, not ~/.config. Most config dirs are dir-symlinks
+# into the repo so both paths are the same file — but ~/.tmux is a real dir with
+# per-file links, where writing to ~ would orphan the repo copy. Repo paths are
+# correct for every package, so use them everywhere.
+DOTFILES="${DOTFILES:-$HOME/dotfiles}"
+if [[ ! -d $DOTFILES ]]; then
+	printf 'theme: dotfiles repo not found at %s (set $DOTFILES)\n' "$DOTFILES" >&2
+	exit 1
+fi
+
+FAILED=()
+
+if [[ -t 1 ]]; then
+	B=$'\e[1m'; DIM=$'\e[2m'; GRN=$'\e[32m'; YLW=$'\e[33m'; RST=$'\e[0m'
+else
+	B=""; DIM=""; GRN=""; YLW=""; RST=""
+fi
+
+note() { printf '%s\n' "  $*"; }
+warn() { printf '%s\n' "  ${YLW}!${RST} $*" >&2; FAILED+=("$1"); }
+
+usage() {
+	sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
+	exit "${1:-0}"
+}
+
+current_flavor() {
+	local f
+	if [[ -r $STATE_FILE ]]; then
+		f=$(<"$STATE_FILE")
+		[[ $f == latte || $f == macchiato ]] && { printf '%s' "$f"; return; }
+	fi
+	printf '%s' "$DEFAULT_FLAVOR"
+}
+
+# relink <dir> <target-basename> <link-name>  — repoint a colors.* symlink
+relink() {
+	local dir=$1 target=$2 link=$3
+	# dunstrc.d/ holds only the generated pointer, so every file in it is
+	# gitignored and git cannot store the empty dir — it is absent on a fresh
+	# clone. Create it rather than failing the first run on a new machine.
+	mkdir -p "$dir"
+	if [[ ! -e $dir/$target ]]; then
+		warn "missing $dir/$target — skipped"
+		return 1
+	fi
+	ln -sfn "$target" "$dir/$link"
+}
+
+# ─────────────────────────── apply ───────────────────────────
+apply() {
+	local flavor=$1 reload=${2:-reload}
+	local mode gtk_theme icons bat_theme
+	case $flavor in
+		latte)     mode=light; gtk_theme="catppuccin-latte-blue-standard+default";     icons="Papirus-Light"; bat_theme="Catppuccin Latte" ;;
+		macchiato) mode=dark;  gtk_theme="catppuccin-macchiato-blue-standard+default"; icons="Papirus-Dark";  bat_theme="Catppuccin Macchiato" ;;
+		*) printf 'unknown flavor: %s\n' "$flavor" >&2; exit 2 ;;
+	esac
+
+	printf '%s\n' "${B}→ ${flavor} (${mode})${RST}"
+
+	# ── symlink swaps ──
+	relink "$DOTFILES/kitty/.config/kitty"     "colors-$flavor.conf" "colors.conf"
+	relink "$DOTFILES/i3/.config/i3"           "colors-$flavor.conf" "colors.conf"
+	relink "$DOTFILES/polybar/.config/polybar" "colors-$flavor.ini"  "colors.ini"
+	relink "$DOTFILES/rofi/.config/rofi"       "colors-$flavor.rasi" "colors.rasi"
+	relink "$DOTFILES/yazi/.config/yazi"       "theme-$flavor.toml"  "theme.toml"
+	relink "$DOTFILES/lazygit/.config/lazygit" "config-$flavor.yml"  "config.yml"
+	relink "$DOTFILES/zsh/.config/theme"       "fzf-$flavor.sh"      "fzf.sh"
+	relink "$DOTFILES/tmux/.tmux"              "colors-$flavor.conf" "colors.conf"
+	relink "$DOTFILES/dunst/.config/dunst/dunstrc.d" "../colors-$flavor.conf" "50-colors.conf"
+
+	# ── single-line rewrites ──
+	local bat_cfg="$DOTFILES/bat/.config/bat/config"
+	local starship_cfg="$DOTFILES/starship/.config/starship.toml"
+	local gtk_dir="$DOTFILES/gtk/.config/gtk-3.0"
+	local flameshot_cfg="$DOTFILES/flameshot/.config/flameshot/flameshot.ini"
+
+	[[ -w $bat_cfg ]] && sed -i "s|^--theme=.*|--theme=\"$bat_theme\"|" "$bat_cfg"
+	[[ -w $starship_cfg ]] && sed -i "s|^palette = .*|palette = \"catppuccin_$flavor\"|" "$starship_cfg"
+	if [[ -r $gtk_dir/settings-$flavor.ini ]]; then
+		cp "$gtk_dir/settings-$flavor.ini" "$gtk_dir/settings.ini"
+	else
+		warn "gtk settings-$flavor.ini missing"
+	fi
+	if [[ -w $flameshot_cfg ]]; then
+		if [[ $flavor == latte ]]; then
+			sed -i -e 's|^uiColor=.*|uiColor=#1e66f5|' \
+			       -e 's|^contrastUiColor=.*|contrastUiColor=#dce0e8|' \
+			       -e 's|^drawColor=.*|drawColor=#d20f39|' \
+			       -e 's|^userColors=.*|userColors=picker, #d20f39, #fe640b, #df8e1d, #40a02b, #1e66f5, #8839ef, #4c4f69, #eff1f5|' \
+			       "$flameshot_cfg"
+		else
+			sed -i -e 's|^uiColor=.*|uiColor=#8aadf4|' \
+			       -e 's|^contrastUiColor=.*|contrastUiColor=#181926|' \
+			       -e 's|^drawColor=.*|drawColor=#ed8796|' \
+			       -e 's|^userColors=.*|userColors=picker, #ed8796, #f5a97f, #eed49f, #a6da95, #8aadf4, #c6a0f6, #cad3f5, #24273a|' \
+			       "$flameshot_cfg"
+		fi
+	fi
+
+	# ── record state before reloading (nvim/zsh read this) ──
+	mkdir -p "$STATE_DIR"
+	printf '%s\n' "$flavor" > "$STATE_FILE"
+
+	# ── the system-wide signal: GTK apps, Firefox, Thunderbird ──
+	if command -v gsettings >/dev/null; then
+		gsettings set org.gnome.desktop.interface color-scheme "prefer-$mode"
+		gsettings set org.gnome.desktop.interface gtk-theme "$gtk_theme"
+		gsettings set org.gnome.desktop.interface icon-theme "$icons"
+	else
+		warn "gsettings not found — Firefox/GTK will not follow"
+	fi
+
+	# ── live reloads ──
+	if [[ $reload == no-reload ]]; then
+		printf '%s\n' "${GRN}done${RST} ${DIM}(links only; apps start in the new flavor)${RST}"
+		return
+	fi
+	pkill -USR1 -x kitty 2>/dev/null && note "kitty reloaded"
+	if [[ -n ${DISPLAY:-} ]] && command -v i3-msg >/dev/null; then
+		i3-msg -q reload 2>/dev/null && note "i3 reloaded"
+		# setsid so the bar outlives whatever shell/keybind invoked us
+		[[ -x $CFG/polybar/launch.sh ]] &&
+			{ setsid "$CFG/polybar/launch.sh" >/dev/null 2>&1 & note "polybar restarted"; }
+	fi
+	command -v dunstctl >/dev/null && dunstctl reload 2>/dev/null && note "dunst reloaded"
+	if command -v tmux >/dev/null && tmux has-session 2>/dev/null; then
+		tmux source-file "$HOME/.tmux.conf" 2>/dev/null && note "tmux reloaded"
+	fi
+	# base46 caches compiled highlights; rebuild so the next nvim opens in the new flavor
+	if command -v nvim >/dev/null; then
+		nvim --headless "+lua pcall(function() require('base46').load_all_highlights() end)" +qa \
+			>/dev/null 2>&1 && note "nvim highlights rebuilt"
+	fi
+
+	if ((${#FAILED[@]})); then
+		printf '%s\n' "${YLW}done with ${#FAILED[@]} warning(s)${RST}"
+	else
+		printf '%s\n' "${GRN}done${RST}  ${DIM}(new shells pick up fzf/starship; running nvim needs a restart)${RST}"
+	fi
+}
+
+status() {
+	local f; f=$(current_flavor)
+	printf '%s\n' "${B}flavor:${RST} $f   ${DIM}(state: $STATE_FILE)${RST}"
+	printf '%s\n' "${DIM}active links${RST}"
+	local p
+	for p in "$DOTFILES/kitty/.config/kitty/colors.conf" "$DOTFILES/i3/.config/i3/colors.conf" \
+	         "$DOTFILES/polybar/.config/polybar/colors.ini" "$DOTFILES/rofi/.config/rofi/colors.rasi" \
+	         "$DOTFILES/dunst/.config/dunst/dunstrc.d/50-colors.conf" \
+	         "$DOTFILES/yazi/.config/yazi/theme.toml" "$DOTFILES/lazygit/.config/lazygit/config.yml" \
+	         "$DOTFILES/zsh/.config/theme/fzf.sh" "$DOTFILES/tmux/.tmux/colors.conf"; do
+		if [[ -L $p ]]; then
+			printf '  %-34s → %s\n' "$(basename "$(dirname "$p")")/$(basename "$p")" "$(readlink "$p")"
+		else
+			printf '  %-34s   %s\n' "$(basename "$(dirname "$p")")/$(basename "$p")" "${YLW}not a symlink${RST}"
+		fi
+	done
+	printf '%s\n' "${DIM}single-line settings${RST}"
+	printf '  %-42s   %s\n' "~/.config/bat/config"  "$(grep -m1 '^--theme' "$DOTFILES/bat/.config/bat/config" 2>/dev/null)"
+	printf '  %-42s   %s\n' "~/.config/starship.toml" "$(grep -m1 '^palette' "$DOTFILES/starship/.config/starship.toml" 2>/dev/null)"
+	printf '  %-42s   %s\n' "gsettings color-scheme" "$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null)"
+	printf '  %-42s   %s\n' "gsettings gtk-theme"    "$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null)"
+}
+
+case "${1:-}" in
+	light)  apply latte ;;
+	dark)   apply macchiato ;;
+	toggle) [[ $(current_flavor) == latte ]] && apply macchiato || apply latte ;;
+	apply)
+		if [[ ${2:-} == --no-reload ]]; then
+			apply "$(current_flavor)" no-reload
+		else
+			apply "$(current_flavor)"
+		fi ;;
+	status|"") status ;;
+	-h|--help|help) usage 0 ;;
+	*) printf 'unknown command: %s\n\n' "$1" >&2; usage 2 ;;
+esac
