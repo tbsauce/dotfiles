@@ -980,3 +980,4 @@ Backup before this change: `config/neoblock.bak-v2/`.
 - **zsh/.zshrc history**: HISTSIZE/SAVEHIST 10000 → 100000; HIST_IGNORE_DUPS → HIST_IGNORE_ALL_DUPS +
   HIST_SAVE_NO_DUPS + HIST_FIND_NO_DUPS; added EXTENDED_HISTORY; `alias history='history -i 1'`
   (zsh's bare `history` only prints the last 16). `zsh -n` ok, alias verified.
+- Committed as `da46ff0` (zsh/.zshrc + changelog only; other pending changes left unstaged).

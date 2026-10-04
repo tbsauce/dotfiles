@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# autoclick - toggleable autoclicker for X11 (Minecraft, idle games, ...)
+#
+#   autoclick left    spam left-click   (toggle)
+#   autoclick right   spam right-click  (toggle)
+#   autoclick hold    hold left button down, no release (toggle) - best for mining
+#   autoclick squat   tap Shift over and over (toggle)      - for Squat Grow in Minecraft
+#   autoclick dig     hold left button AND tap Shift        - mine while squatting
+#   autoclick farm    spam RIGHT-click AND tap Shift        - harvest while squatting
+#   autoclick stop    stop whatever is running
+#   autoclick status  print current mode
+#
+# Pressing the same mode again stops it. Picking a different mode switches.
+# It always stops on its own after AUTOCLICK_MAX_SECONDS so nothing can run away.
+#
+# Tunables (env):
+#   AUTOCLICK_INTERVAL_MS   ms between clicks           (default 100 = 10/sec)
+#   AUTOCLICK_SQUAT_MS      ms Shift stays down/up      (default 30)
+#   AUTOCLICK_CLICKS        right-clicks per squat cycle in farm mode (default 3)
+#   AUTOCLICK_CLICK_GAP_MS  ms between those clicks     (default 15)
+#   AUTOCLICK_MAX_SECONDS   hard stop after N seconds   (default 1800 = 30 min)
+
+set -euo pipefail
+
+RUNDIR="${XDG_RUNTIME_DIR:-/tmp}"
+PIDFILE="$RUNDIR/autoclick.pid"
+MODEFILE="$RUNDIR/autoclick.mode"
+
+INTERVAL_MS="${AUTOCLICK_INTERVAL_MS:-100}"
+MAX_SECONDS="${AUTOCLICK_MAX_SECONDS:-1800}"
+SQUAT_MS="${AUTOCLICK_SQUAT_MS:-30}"
+CLICKS="${AUTOCLICK_CLICKS:-3}"
+CLICK_GAP_MS="${AUTOCLICK_CLICK_GAP_MS:-15}"
+
+command -v xdotool >/dev/null || {
+    echo "autoclick: xdotool is not installed (sudo dnf install xdotool)" >&2
+    exit 1
+}
+
+notify() {
+    command -v notify-send >/dev/null && \
+        notify-send -t 1500 -a autoclick "$1" "${2:-}" || true
+}
+
+# echoes the pid if a worker is alive, else returns 1 and cleans up stale files
+running_pid() {
+    [ -f "$PIDFILE" ] || return 1
+    local p
+    p=$(cat "$PIDFILE" 2>/dev/null) || return 1
+    if [ -n "$p" ] && kill -0 "$p" 2>/dev/null; then
+        echo "$p"
+        return 0
+    fi
+    rm -f "$PIDFILE" "$MODEFILE"
+    return 1
+}
+
+release_buttons() { xdotool mouseup 1 mouseup 3 keyup Shift_L 2>/dev/null || true; }
+
+stop() {
+    local p
+    if p=$(running_pid); then
+        kill "$p" 2>/dev/null || true
+        sleep 0.15
+        release_buttons          # never leave a button stuck down
+        rm -f "$PIDFILE" "$MODEFILE"
+        notify "autoclick off"
+        echo "stopped"
+    else
+        release_buttons
+        echo "not running"
+    fi
+}
+
+# runs in the background; bounded loop, never infinite
+worker() {
+    local mode=$1
+    trap 'release_buttons; exit 0' TERM INT HUP
+
+    if [ "$mode" = "hold" ]; then
+        xdotool mousedown 1
+        local i=0
+        while [ "$i" -lt "$MAX_SECONDS" ]; do
+            sleep 1
+            i=$((i + 1))
+        done
+        release_buttons
+        return
+    fi
+
+    local squat_delay
+    squat_delay=$(awk -v ms="$SQUAT_MS" 'BEGIN { printf "%.3f", ms/1000 }')
+
+    case "$mode" in
+        squat|dig|farm)
+            if [ "$mode" = "dig" ]; then xdotool mousedown 1; fi
+            local cycles i=0
+            cycles=$(( MAX_SECONDS * 1000 / (SQUAT_MS * 2) ))
+            # One chained xdotool call per cycle instead of 3 processes + 2 shell
+            # sleeps - process spawn was costing more than the delay itself.
+            # right-click fires only while Shift is UP: sneaking suppresses block
+            # interaction in Minecraft, so a mid-crouch click would not harvest.
+            local chain="keydown Shift_L sleep $squat_delay keyup Shift_L"
+            if [ "$mode" = "farm" ]; then
+                chain="$chain click --repeat $CLICKS --delay $CLICK_GAP_MS 3"
+            fi
+            chain="$chain sleep $squat_delay"
+            while [ "$i" -lt "$cycles" ]; do
+                # shellcheck disable=SC2086
+                xdotool $chain 2>/dev/null || break
+                i=$((i + 1))
+            done
+            release_buttons
+            return
+            ;;
+    esac
+
+    local button=1
+    [ "$mode" = "right" ] && button=3
+
+    local delay iterations i=0
+    delay=$(awk -v ms="$INTERVAL_MS" 'BEGIN { printf "%.3f", ms/1000 }')
+    iterations=$(( MAX_SECONDS * 1000 / INTERVAL_MS ))
+
+    while [ "$i" -lt "$iterations" ]; do
+        xdotool click "$button" 2>/dev/null || break
+        sleep "$delay"
+        i=$((i + 1))
+    done
+}
+
+start() {
+    local mode=$1
+    stop >/dev/null
+    worker "$mode" &
+    echo $! > "$PIDFILE"
+    echo "$mode" > "$MODEFILE"
+    case "$mode" in
+        hold)  notify "autoclick: HOLD left"  "mouse button held down" ;;
+        left)  notify "autoclick: LEFT"       "$(( 1000 / INTERVAL_MS ))/sec" ;;
+        right) notify "autoclick: RIGHT"      "$(( 1000 / INTERVAL_MS ))/sec" ;;
+        squat) notify "autoclick: SQUAT"      "tapping Shift ~$(( 1000 / (SQUAT_MS * 2) ))/sec" ;;
+        dig)   notify "autoclick: DIG"        "holding left + tapping Shift" ;;
+        farm)  notify "autoclick: FARM"       "$(( 1000 / (SQUAT_MS * 2 + CLICKS * CLICK_GAP_MS) * CLICKS )) clicks/sec + squat" ;;
+    esac
+    echo "$mode started (pid $(cat "$PIDFILE"))"
+}
+
+# toggle: same mode running -> off, otherwise switch to it
+toggle() {
+    local mode=$1 current=""
+    if running_pid >/dev/null; then
+        current=$(cat "$MODEFILE" 2>/dev/null || true)
+        if [ "$current" = "$mode" ]; then
+            stop
+            return
+        fi
+    fi
+    start "$mode"
+}
+
+case "${1:-}" in
+    left|right|hold|squat|dig|farm) toggle "$1" ;;
+    stop)            stop ;;
+    status)
+        if running_pid >/dev/null; then
+            echo "running: $(cat "$MODEFILE" 2>/dev/null)"
+        else
+            echo "off"
+        fi
+        ;;
+    *)
+        command sed -n '3,15p' "$0" | command sed 's/^# \{0,1\}//'
+        exit 1
+        ;;
+esac

@@ -1,6 +1,6 @@
 # Starship prompt — Catppuccin (palette line switched by `theme`)
 
-palette = "catppuccin_latte"
+palette = "catppuccin_macchiato"
 
 format = """
 $line_break\

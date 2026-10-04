@@ -46,6 +46,16 @@ bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
 
+# Autoclicker (xdotool) - toggles, press again to stop. Auto-stops after 30 min.
+# F8 = hold left (mining), F7 = spam left, F6 = spam right, F5 = panic stop
+# F9 = tap Shift (Squat Grow), F10 = right-click + tap Shift (farm) - ~28 clicks/sec
+bindsym $mod+F8 exec --no-startup-id ~/.local/bin/autoclick hold
+bindsym $mod+F7 exec --no-startup-id ~/.local/bin/autoclick left
+bindsym $mod+F6 exec --no-startup-id ~/.local/bin/autoclick right
+bindsym $mod+F5 exec --no-startup-id ~/.local/bin/autoclick stop
+bindsym $mod+F9 exec --no-startup-id ~/.local/bin/autoclick squat
+bindsym $mod+F10 exec --no-startup-id ~/.local/bin/autoclick farm
+
 # Screen brightness (brightnessctl)
 bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set 10%+
 bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-

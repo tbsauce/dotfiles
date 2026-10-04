@@ -26,7 +26,6 @@
     "command": "bash $HOME/.claude/statusline.sh",
     "padding": 0
   },
-  "effortLevel": "high",
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
@@ -67,5 +66,6 @@
       "**Org-specific CLIs**: `obsidian` (29x in this project's transcripts — vault=MyBrain move/rename/backlinks/tags/search); `defuddle` documented in a repo skill but not observed in usage",
       "**Routine under Career/ prefix**: reads and writes under `Career/` are routine for the career-ops workflow, but the contents are personal data — never publish, upload, or paste them outside this private repo without confirmation"
     ]
-  }
+  },
+  "switchModelsOnFlag": true
 }
