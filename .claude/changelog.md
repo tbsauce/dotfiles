@@ -427,3 +427,556 @@ Re-paired MX Master 4 (MAC rotated from `:EE` to `:EF` after restart). Paired Ro
 - README deploy section now documents `theme apply` as a REQUIRED post-stow step (configs `include` gitignored pointers absent from a clone) and notes grub/ + firefox/ are not stow packages.
 - /reflect session: captured 8 lessons to .claude/rules/lessons.md (13 active, budget 20). Also corrected memory/hardware_peripherals.md frontmatter + MEMORY.md index which still said "USB-C only" while the body said 1x USB-C + USB-A.
 - Committed + pushed as `a4c7628` "light/dark theme switcher (catppuccin latte + macchiato)" → origin/main (46 files). Verified before staging that no generated `colors.*` pointer was included and that the staged diff contained no secrets. `claude/.claude/settings.json` carried a pre-existing `theme: dark-daltonized → auto` change from the user's own /theme run; kept.
+- Retuned ATM10SKY memory after it swapped 4GB: was -Xms6144/-Xmx6144 WITH AlwaysPreTouch (my error - that is dedicated-server tuning, it claims the whole heap at startup; RSS hit 7.22GB and 90% RAM with no world loaded). Now MinMemAlloc=2048 / MaxMemAlloc=5120, AlwaysPreTouch REMOVED, added UseStringDeduplication + SoftRefLRUPolicyMSPerMB. Also deduped instance.cfg (my edit script had appended a second JvmArgs key). Backups: instance.cfg.bak, instance.cfg.bak2.
+- Fixed ATM10SKY instance.cfg after I corrupted it twice: my dedupe script sorted the file and kept the wrong duplicate `name=` (Prism then showed "Unnamed Instance"), and Prism re-added its own keys creating further dups. Resolution: restored instance.cfg.bak (clean original) and applied ONLY the memory change with targeted sed on existing keys. Final state verified: 1 name line, no duplicate keys, MinMemAlloc=2048 MaxMemAlloc=5120, no AlwaysPreTouch. LESSON: do not rewrite/sort a whole Prism instance.cfg - edit single keys in place with sed and diff against a backup, because Prism owns and rewrites that file.
+
+## 2026-09-20 — autoclicker for Minecraft (X11)
+
+- **Added** `scripts/.local/bin/autoclick` — toggleable xdotool autoclicker.
+  Modes: `hold` (holds left button, for mining), `left`, `right`, `stop`, `status`.
+  Bounded loop, hard stop after `AUTOCLICK_MAX_SECONDS` (default 1800), always
+  releases mouse buttons on exit. Tunable via `AUTOCLICK_INTERVAL_MS` (default 100ms).
+- **Stowed** `scripts` → symlink `~/.local/bin/autoclick` created (only new link).
+- **Edited** `i3/.config/i3/config` — 4 bindings inserted above the brightness block:
+  `$mod+F8` hold · `$mod+F7` left · `$mod+F6` right · `$mod+F5` stop.
+  Chose `$mod+F*` deliberately: Minecraft uses bare F7 (light overlay) and F9
+  (chunk borders), and i3 only grabs the Alt-modified combos, so nothing is stolen.
+  Validated with `i3 -C` (exit 0), then `i3-msg reload`.
+- **BLOCKED**: `sudo dnf install -y xdotool` denied by sandbox classifier — user must
+  run it manually. Script exits with a clear message until then.
+
+## 2026-09-25 — Stremio blank UI: WebKit GPUProcess never spawned (DMABUF renderer)
+
+**Symptom:** Flatpak `com.stremio.Stremio` v1.0.3 opens its window but the content area
+is blank/black — no catalogs, no posters.
+
+**Ruled out (all healthy):** bundled streaming server v4.21.0 answering on :11470/:12470;
+Cinemeta manifest 200 + api.strem.io reachable; libmpv 2.5.0 present in `/app/lib`;
+`/dev/dri/{card1,renderD128}` + radeon Vulkan ICD visible inside the sandbox; no crash,
+segfault or OOM in either journal. picom's `use-damage = false` fix from 2026-07-18 is
+still in place and `~/.config/picom/picom.conf` now matches the repo copy byte-for-byte
+(the July drift note is resolved). Nothing updated since Jul 8 — app, org.gnome.Platform/50
+runtime, mesa 25.3.6 and kernel are all unchanged, so this is not an update regression.
+
+**Root cause (evidence):** the app ran `WebKitWebProcess` + `WebKitNetworkProcess` but
+**no `WebKitGPUProcess`** — that process does the accelerated compositing, so the page was
+never painted. Relaunching with `WEBKIT_DISABLE_DMABUF_RENDERER=1` makes GPUProcess spawn.
+
+**Actions:**
+- `flatpak kill com.stremio.Stremio` — tore down the stuck instance (freed :11470).
+- Relaunched detached: `setsid -f env WEBKIT_DISABLE_DMABUF_RENDERER=1 flatpak run com.stremio.Stremio`
+  (detached per the July caveat: a tracked background Bash task dies with the task).
+- **No persistent `flatpak override` written yet** — pending visual confirmation.
+
+**Deliberately NOT used:** `LIBGL_ALWAYS_SOFTWARE=1`. Per 2026-07-18 that forces llvmpipe,
+breaks mpv's GPU video output and yields black *video* (audio+controls fine). DMABUF disable
+touches only WebKit compositing, not mpv.
+
+**Still noisy in stderr (both pre-existing, harmless):** tray icon fails to register
+(`StatusNotifierWatcher` not activatable — the known i3/no-snixembed gap) and
+`Cannot load libcuda.so.1` (AMD box, no CUDA).
+
+**Open question:** `ERROR stremio_linux_shell::app::webview: Failed to send message:
+TypeError: undefined is not a function` — shell↔web-UI bridge error, may or may not matter.
+
+**Fallback if the shell stays broken:** the 2026-07-18 known-good path is intact —
+`~/.local/opt/stremio-4.4/tree/opt/stremio/server.js` present, node v22.22.2, firefox,
+mpv 0.40.0. User chose manual start (no systemd unit) for that route.
+
+## 2026-09-25 — Sauce Pack trimmed to near-vanilla + QoL (73 → 43 mods)
+
+User got burned out on tech/skyblock; wants vanilla + quality of life, keeping backpacks,
+Sophisticated Storage chest tiers/upgrades, and Mystical Agriculture for ores-without-mining.
+
+- **Moved 30 jars** to `instances/Sauce Pack/minecraft/mods/disabled/` (moved, NOT deleted —
+  reversible). Removed: AE2+GuideME, Create ×3, Industrial Foregoing+Titanium, Mekanism ×3,
+  Pipez, CC:Tweaked, 5 dimension mods (Aether/Deep Aether/AeroBlender/Undergarden/
+  Deeper and Darker), 8 adventure/structure mods (Dungeons Arise, YUNG's ×3, Dungeons and
+  Taverns, Towns and Towers, Cristel Lib, Explorer's Compass), Waystones+Balm,
+  Visual Workbench+Puzzles Lib, owo-lib (orphan).
+- **Verified** 43 remaining jars have **zero missing required dependencies** — wrote a
+  tomllib scanner that also reads `META-INF/jarjar/` bundled mods. First pass reported 8
+  "missing" deps; all were false positives because the scanner ignored the NeoForge 1.21
+  `type` field. Re-checked each toml: every one is `optional` or `incompatible`
+  (Sodium→embeddium and Noisium→biox are *incompatibility* declarations, not requirements).
+- **Edited** `instances/Sauce Pack/instance.cfg` via targeted `sed` only (Prism owns this
+  file — never rewrite or sort it): `MinMemAlloc=1024`, `MaxMemAlloc=3072`,
+  dropped `-XX:+AlwaysPreTouch`, added `-XX:+UseStringDeduplication`.
+  Backup at `instance.cfg.bak-43mods`. Verified: 0 duplicate keys, 1 `name=` line.
+- **Renamed** `saves/New World` → `saves/ARCHIVED-old-world-had-machines` (2.9 GB) so it
+  can't be opened by accident — its chunks reference Mekanism/Create/AE2 blocks that no
+  longer exist. User chose a fresh world. Kept Terralith (verified near-zero runtime cost;
+  earlier lag was chunk generation).
+
+## 2026-09-25 — Sauce Pack: added Apothic Spawners (43 → 45 mods)
+
+- **Downloaded** to `instances/Sauce Pack/minecraft/mods/`:
+  `Placebo-1.21.1-9.9.2.jar` (316 KB), `ApothicSpawners-1.21.1-1.4.0.jar` (127 KB).
+  Both fetched from Modrinth API v2 and **sha512-verified against the API hash**.
+- **Verified** both declare `modLoader="javafml"`, require NeoForge `[21.1.187,)` — instance
+  runs 21.1.247 ✓ — and Apothic Spawners requires `placebo [9.9.0,)` ✓ (9.9.2 installed).
+- **Why this mod**: user wanted craftable/movable spawners. Vanilla forbids both, and the
+  obvious "change mob with a spawn egg" is useless in survival since spawn eggs are
+  creative-only. Apothic Spawners closes that loop itself with the **Capturing** enchantment
+  (max_level 3, `primary_items` = swords, listed in `minecraft:tags/enchantment/non_treasure`
+  so it rolls on a normal enchanting table) — mobs drop their spawn egg on death.
+
+## 2026-09-25 (evening) — Stremio still black after user updated Flatpak 1.0.3 -> 1.2.0
+
+**User action:** ran `flatpak update` at 18:09-18:10 today. App went 1.0.3 (`b11b42ab`, Jul 6)
+-> **1.2.0** (`7580e7db`, Aug 3); `org.gnome.Platform/50` also updated to a Sep 23 build
+(which is where WebKitGTK lives). Window still blank/black afterwards.
+
+**Revert question answered: reverting does NOT help.** The blank UI was diagnosed at ~10:51
+this morning on 1.0.3 + the OLD runtime — i.e. it was already broken BEFORE either update, so
+neither is the trigger. All four commits Flathub retains (Jul 6, Jul 20, Jul 23, Aug 3) are the
+same v1.x Rust/WebKitGTK shell. Downgrade command if ever wanted:
+`flatpak update --commit=b11b42ab35d16c22b387811b18417009e4526710ff326b89129bd11024ddae19 com.stremio.Stremio`
+
+**Confirmed root cause of the blank window:** the v1.x shell has no local UI bundle — `/app/share`
+carries no web assets and the binary contains `web.stremio.com`, so it loads the ENTIRE UI into a
+WebKitGTK webview. The page is reachable from inside the sandbox (index 200/10759 B, main.js
+200/10119325 B, worker.js + main.css 200) but never executes:
+`ERROR stremio_linux_shell::app::webview: Failed to send message: TypeError: undefined is not a function`.
+Identical error under all three render configs tried, so it is not a rendering knob:
+- `WEBKIT_DISABLE_DMABUF_RENDERER=1` — DOES fix the missing `WebKitGPUProcess` (it now spawns),
+  but the UI stays blank. Worth keeping in mind: the absent GPUProcess was a real, separate defect.
+- `+ WEBKIT_DISABLE_COMPOSITING_MODE=1` — no change.
+- `+ WEBKIT_FORCE_SANDBOX=0` (WebKit's nested sandbox inside flatpak) — no change.
+**No flatpak override was ever written** — all three were one-shot `setsid -f env ...` launches.
+
+**Working setup restored (the 2026-07-18 path):**
+- `flatpak kill com.stremio.Stremio` (note: takes ~8s to fully exit, two polls needed).
+- `setsid -f node ~/.local/opt/stremio-4.4/tree/opt/stremio/server.js` -> :11470, v4.20.8,
+  found /usr/bin/ffmpeg + ffprobe, registered **MPV and VLC** as external cast targets.
+  Log now at `~/.stremio-server/server.log`.
+- `firefox --new-tab https://web.stremio.com/` — UI connected, 17 requests hit the server.
+- User chose manual start; no systemd unit created.
+
+**GOTCHA — the :12470 HTTPS endpoint is dead** on BOTH server builds (4.20.8 and the flatpak's
+4.21.0): `HTTPS: Request error Could not get a valid HTTPS certificate`, curl gets TLS
+`unexpected eof`. It does not block this setup: Firefox treats `http://127.0.0.1` as a
+potentially-trustworthy origin (since FF84), so the https web UI reaches the plain-http server
+on :11470 without mixed-content blocking. Don't chase the cert.
+
+**Note:** server's hw-transcode probe found **no viable acceleration profile**
+(`vaapi-renderD128` tests failed), so transcoded playback is CPU-bound — cast to MPV to
+direct-play and skip transcoding entirely.
+
+## 2026-09-25 (evening, cont.) — ROOT CAUSE: system has no h264/hevc decoders (Fedora ffmpeg-free)
+
+**The blank Stremio window and the "never plays" were TWO SEPARATE faults.** The second one is
+the real blocker and has nothing to do with Stremio:
+
+`ffmpeg -decoders` on this machine: **h264 MISSING, hevc MISSING, eac3 MISSING, vc1 MISSING**
+(ac3, aac, vp9, av1, mpeg4 present). Installed: `ffmpeg-free-7.1.5` + `libavcodec-free-7.1.5`
+(Fedora's patent-stripped build). NOT installed: `ffmpeg`, `libavcodec-freeworld`,
+`mesa-va-drivers-freeworld`. **RPM Fusion free/nonfree + updates are already enabled.**
+
+Every layer failed for this one reason — Firefox can't decode H.264/HEVC, mpv can't
+(`Failed to initialize a decoder for codec 'hevc'` / `'eac3'`), and the Stremio server can't
+transcode around it because `/usr/bin/ffmpeg` lacks the decoder as well. It also explains the
+earlier `no viable acceleration profiles detected`: `mesa-va-drivers` has H.264/HEVC VAAPI
+disabled on AMD; `mesa-va-drivers-freeworld` is the RPM Fusion build that enables it.
+Corroboration: YouTube plays fine for the user because YouTube serves VP9/AV1, both present.
+
+**Proposed fix (NOT run — needs explicit permission + sudo):**
+```
+sudo dnf swap ffmpeg-free ffmpeg --allowerasing
+sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld
+```
+
+**Diagnostics proven along the way (all healthy, rule these out in future):**
+- BitTorrent works: CC-licensed Big Buck Bunny test hit 42 peers / 33 unchoked and pulled
+  409600 B at ~80 KB/s. Peer discovery, DHT and trackers are all fine.
+- The user's own stream (Spider-Noir S01E03 720p **HEVC** x265, eac3 audio) resolved and had
+  already cached its first 5 MB locally — serving it back at 274 MB/s from
+  `~/.stremio-server` with `downloaded: 0`. So the torrent side worked all along.
+- Firefox <-> local server has NO mixed-content problem: the https web UI successfully drove
+  `http://127.0.0.1:11470` (engine create + ~50 stats.json polls). Confirms the FF84+
+  loopback-is-trustworthy behaviour; the dead :12470 cert is a red herring.
+- Tailscale is Running but **ExitNode: None**, default route is direct via wlp1s0 — no VPN
+  interception.
+
+**GOTCHA for diagnosing torrents:** `stats.json` showing `down=0` with `selections:[]` does NOT
+mean a dead swarm — EngineFS only fetches pieces once a file is actually requested. Pull a byte
+range from `/<infoHash>/<fileIdx>` to force selection before judging swarm health. Equally, a
+huge instant speed means a CACHE hit, not a fast swarm — check `downloaded` in stats to tell them apart.
+
+## 2026-09-25 (evening, resolved) — Codec swap applied; playback verified end-to-end
+
+**User ran (approved):**
+```
+sudo dnf swap ffmpeg-free ffmpeg --allowerasing
+sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld
+```
+Result: `ffmpeg-7.1.5` + `mesa-va-drivers-freeworld-25.3.6` installed; `ffmpeg-free` and
+`mesa-va-drivers` removed. All decoders now PRESENT: h264, hevc, eac3, vc1, ac3, aac, vp9, av1.
+
+**Verified working (not assumed):**
+- mpv on the real stream: `Using hardware decoding (vaapi-copy)` on hevc 1330x720 + eac3 6ch,
+  zero decoder errors. (`Cannot load libcuda.so.1` is harmless — no NVIDIA in this laptop.)
+- Server-side transcode, which previously could not run at all: `/hlsv2/.../video0.m3u8`
+  with `profile=vaapi-renderD128` now returns a valid playlist, and the segments are real —
+  `init.mp4` 872 B + `segment1.m4s` 1237710 B at 2.2 MB/s, ffprobe reports **h264 1280x692**.
+  So the HEVC -> H.264 path Firefox depends on is confirmed working.
+- Standalone server restarted on :11470 (v4.20.8), MPV + VLC registered, and the live Firefox
+  tab reconnected to it on its own (seen polling stats.json for the episode's infoHash).
+
+**Still broken / unchanged:** the Flatpak v1.2.0 shell window is still blank — that is the
+separate WebKit defect from earlier today and the codec fix does not touch it. Use the Firefox
+tab. The flatpak's own bundled server was seen running but never bound :11470, so leaving the
+app open just risks a port fight — close it.
+
+**GOTCHA (cost a dead shell):** `pkill -f 'stremio-4.4.*server.js'` killed the Bash tool's OWN
+zsh wrapper, because the wrapper's command line contains the pattern being matched (exit 144).
+Kill node helpers by PID from `pgrep -af ... | grep -v 'zsh -c'`, never with a broad `pkill -f`.
+
+**Restart after reboot (manual by user's choice):**
+`setsid -f node ~/.local/opt/stremio-4.4/tree/opt/stremio/server.js`
+
+## 2026-09-25 (night) — Native app: stale-cache 404 FIXED, repaint bug remains
+
+**Fix #1 (worked): stale WebKit HTTP cache.** `--dev` dev-tools console showed the real error:
+the app loads its UI via `http://127.0.0.1:11470/proxy/d=https%3A%2F%2Fweb.stremio.com/`
+(its default `--url`), and every asset 404'd against build hash `6ed4463d94baf...`, a build
+Stremio has deleted from their CDN. Proof: upstream `/6ed4463d.../scripts/main.js` -> 404 while
+`/a6b71620.../scripts/main.js` -> 200, and the proxy's own HTML correctly references a6b71620.
+The stale index.html was cached in `~/.var/app/com.stremio.Stremio/cache/stremio/WebKitCache/`.
+**Deleted that dir (65M, user approved)** -> app now loads for real: posters, cards, play button
+all render. This is why no render/GPU knob ever helped and why update/reinstall can't fix it —
+the bad copy lives in app cache, which neither touches.
+
+**Fix #2 (worked): WebKitWebProcess SIGABRT.** `ANOM_ABEND sig=6`, core dump 43.9M. Stack:
+`abort()` <- libwebkitgtk-6.0.so.4.19.3 <- JIT frames <- libjavascriptcoregtk — an abort during
+JIT'd JS, not a GPU fault. **`JSC_useJIT=0` eliminates it** (0 aborts since; costs JS speed).
+
+**UNRESOLVED: partial repaint.** Only regions that receive input events paint; rest stays black
+(user screenshots show correct poster art in patches). Ruled out, each tested and still patchy:
+- `WEBKIT_DISABLE_DMABUF_RENDERER=1` (does fix the missing WebKitGPUProcess, but not painting)
+- `WEBKIT_DISABLE_COMPOSITING_MODE=1`
+- `JSC_useJIT=0` (fixes the crash only)
+- `GSK_RENDERER=cairo` (GTK4 software renderer)
+- **picom stopped entirely** — still patchy, so NOT the compositor this time (unlike 2026-07-18).
+  picom restarted identically: `picom --config ~/.config/picom/picom.conf`.
+- i3 fullscreen toggle (forces full re-damage) — still patchy, so not a tiling/resize bug.
+
+**Context the user had forgotten:** the 2026-07-18 entry already called this v1.x shell "buggy
+(freezes, black video, background hangs)" — the Firefox route exists BECAUSE of that. The app
+has been broken since the Qt->WebKit switch; today's update did not cause it.
+
+**Only untested lead:** downgrade `org.gnome.Platform//50` (system install) from the Sep 23
+build to an earlier commit, e.g. `545da92354a265d2c3572c91c39ac14dd7e74f9d8f9b66744ad50f478d2497c5`
+(Aug 23) or `de3b0b88...` (Aug 2). Affects every flatpak on that runtime; needs sudo/polkit.
+
+**GOTCHA:** `pgrep -f`/`pkill -f` with a pattern also matches the Bash tool's own zsh wrapper and
+kills the shell (exit 144) — hit twice. Anchor it: `pgrep -f '^/app/libexec/stremio/stremio'`.
+**GOTCHA:** `import -window root` + i3 rect coords is unreliable while the user is switching
+workspaces — captured Firefox twice and nearly misreported it as a fix. Confirm the focused
+workspace in the SAME call as the capture, or just ask the user.
+
+## 2026-09-25 (night, RESOLVED) — Native Stremio fixed: WebKitGTK 4.19.3 regression in GNOME runtime
+
+**ROOT CAUSE of the repaint bug + crash: the org.gnome.Platform//50 runtime build of 2026-09-23
+(WebKitGTK 4.19.3).** Downgrading the runtime to the 2026-08-23 build (**WebKitGTK 4.16.9**)
+fixed everything at once — full correct painting, no SIGABRT, and `WebKitGPUProcess` now spawns
+BY ITSELF with **no env vars at all** (previously it only appeared with
+`WEBKIT_DISABLE_DMABUF_RENDERER=1`, which was a symptom of the same regression).
+The user's original "maybe an update broke it" instinct was right — just the RUNTIME, not the app.
+
+**Command that worked:**
+```
+sudo flatpak update --commit=545da92354a265d2c3572c91c39ac14dd7e74f9d8f9b66744ad50f478d2497c5 org.gnome.Platform//50
+```
+**Blast radius: nil** — `com.stremio.Stremio` is the ONLY app on this machine using
+org.gnome.Platform//50 (verified by walking every installed app's Runtime field).
+
+**GOTCHA — downgrade targets expire twice over:** the Aug 2 commit (`de3b0b88...`) failed with
+`GPG verification enabled, but no signatures found` — Flathub prunes old signed objects even
+though `remote-info --log` still LISTS the commit. And the previously-deployed runtime was gone
+from disk too (`/var/lib/flatpak/runtime/.../50/` held only the new commit; the update pruned the
+old deployment). So a rollback must happen while a target is still fetchable. `flatpak remote-info
+flathub <ref> --commit=<hash>` is the cheap availability probe before committing to a 400MB pull.
+Available at time of fix: Sep 22, Sep 19, Sep 10, Aug 23. NOT available: Aug 2 and older, incl.
+the Jun 21 build the user had actually been running.
+
+**MUST PIN:** the next `flatpak update` will pull the runtime forward again and re-break the app:
+`sudo flatpak mask org.gnome.Platform//50`  (undo: `sudo flatpak mask --remove org.gnome.Platform//50`)
+Revisit when a runtime newer than Sep 23 ships a WebKit past 4.19.3.
+
+**Full picture of today — THREE independent faults, all now fixed:**
+1. System had no h264/hevc/eac3 decoders (Fedora ffmpeg-free) -> nothing could play anywhere.
+   Fixed by RPM Fusion swap.
+2. Stremio's WebKit cache held a dead build hash -> every UI asset 404'd -> blank window.
+   Fixed by deleting `cache/stremio`.
+3. WebKitGTK 4.19.3 regression -> partial repaint + SIGABRT. Fixed by runtime downgrade.
+Each masked the next, which is why this took so long to unpick.
+
+## 2026-09-25 — New instance "Sauce OneBlock" (46 mods)
+
+User wanted a OneBlock world with the same near-vanilla pack. Built as a SEPARATE instance
+so the open world in "Sauce Pack" is untouched.
+
+- **Created** `instances/Sauce OneBlock/` (43 MB) by copying only `instance.cfg`,
+  `mmc-pack.json`, `minecraft/{mods,config,options.txt}` from Sauce Pack — deliberately NOT
+  `saves/`, `xaero/`, `logs/`, `crash-reports/`, or `mods/disabled/`. Reset the
+  lastLaunchTime/lastTimePlayed/totalTimePlayed counters; `name=Sauce OneBlock`.
+- **Downloaded** `neoblock-neoforge-1.21.1-0.8.0-Beta.jar` (792 KB) from Modrinth,
+  **sha512-verified**. Requires NeoForge `[21.1.128,)` and MC `[1.21.1, 1.21.3]` — instance
+  is 21.1.247 / 1.21.1 ✓. No other dependencies. Ships a **world preset**
+  (`data/neoblock/worldgen/world_preset/neoblock.json`), so it only applies to worlds
+  created with that world type.
+- **Why it was needed**: verified that **no recipe in Mystical Agriculture produces a
+  Prosperity Shard** — it drops only from Prosperity Ore, which is worldgen-only. On a plain
+  OneBlock that softlocks the entire mod (no shard → no seed base → no seeds). Soulstone/
+  Soulium and dungeon spawners have the same problem.
+- **Extracted** the mod's `configs/` to `minecraft/config/neoblock/` (path derived from
+  `IConfig.class`: `ResourceUtil.pathOf("neoblock", ...)`) and **patched the tier block
+  tables** so those ores actually appear:
+  - tier-1: +inferium_ore
+  - tier-2: +inferium_ore ×2, +prosperity_ore
+  - tier-3: +deepslate_prosperity_ore ×3, +deepslate_inferium_ore ×3, +soulstone ×2,
+    +soulium_ore, +minecraft:spawner
+  - tier-4: +soulium_ore
+- **Caught my own bug**: first patch wrote `"id"  # comment,` — TOML treats `#` as
+  comment-to-end-of-line, so the array separator was swallowed. Rewrote to put the comma
+  before the `#`, then **validated every file with `tomllib`**: all 7 tier files + chests/
+  config/sequences/tags/trades parse OK. `tier-template.toml` fails to parse, but a `diff`
+  against the jar shows it is byte-identical to what the mod ships — pre-existing, untouched.
+
+## 2026-09-25 — Sauce OneBlock: dropped Terralith (46 → 43 mods)
+
+- **Read all three NeoBlock world presets.** In every one the Overworld is
+  `minecraft:flat` with a single `minecraft:air` layer, and the Nether uses vanilla
+  `multi_noise`/`minecraft:nether`. Terralith only edits Overworld biomes, so it has
+  nothing to act on — pure dead weight (2051 json files loaded for no effect).
+- **Moved to `mods/disabled/`**: Terralith, Lithostitched, Apollib. Verified with the
+  dependency scanner that lithostitched is required only by Terralith and apollib only by
+  lithostitched, so nothing else breaks.
+- **Preset guidance given**: `neoblock` = void Overworld + REAL Nether + real End;
+  `neoblock_no_nether` = Nether is also void; `neoblock_oceans` = Overworld is an infinite
+  ocean over gravel/bedrock. Recommended plain `neoblock` so the Nether stays a real
+  dimension (keeps Veinminer, Xaero maps and exploration meaningful).
+
+## 2026-09-25 — Sauce OneBlock: added Only Paxels (43 → 44 mods)
+
+- **Downloaded** `onlypaxel-1.21.1-0.3.jar` (43 KB) from Modrinth, **sha512-verified**.
+  Requires NeoForge `[21,)`, MC `[1.21.1,1.22)`. No dependencies.
+- **Compared three candidates** first by unzipping each: Only Paxels (174k dl, shaped —
+  3 tools + 2 sticks), Paxels for Dummies (6k dl, shapeless — literally just the 3 tools),
+  Simplest Paxels (39k dl, shaped + smelt-back-to-nuggets). All three ship the *same* six
+  tiers (wood→netherite) and none support modded tool materials, so picked on adoption.
+- **Installed while the game was running** — safe because mod jars are only read at startup;
+  deliberately did NOT touch options.txt or instance.cfg, which Prism/MC rewrite on exit.
+  Takes effect on next launch.
+- **CONFIRMED the NeoBlock config path guess was correct**: the running game created
+  `config/neoblock/schematics/` at 20:58, proving the mod reads `config/neoblock/` — the
+  same folder the patched tier-*.toml files were placed in. The Mystical Agriculture ore
+  additions are live, not ignored.
+
+## 2026-09-25 — Sauce OneBlock: added Squat Grow (44 → 45 mods)
+
+- **Downloaded** `squatgrow-neoforge-21.1.4+mc1.21.1.jar` (43 KB), **sha512-verified**.
+  308k downloads. Crouch near plants to force growth ticks.
+- **Dependency check**: its toml declares `architectury required = true, versionRange
+  [13.0.1,)`. Instance already ships `architectury-13.0.11-neoforge.jar` ✓ — no extra jar
+  needed. (ATM10SKY carries 21.1.2; took the newer 21.1.4 from Modrinth.)
+- Adds keybind `key.squatgrow.toggle` (unbound by default in this instance's options.txt —
+  user must bind it in Controls if they want the on/off toggle; the crouch behaviour itself
+  works with no binding).
+- Installed while the game was running; takes effect on next launch.
+
+## 2026-09-25 — autoclick: added squat + dig modes
+
+User wanted the autoclicker to drive Squat Grow (which needs Shift tapped repeatedly, not
+held) and optionally mine at the same time.
+
+- **Edited** `scripts/.local/bin/autoclick`: new modes `squat` (tap Shift on a loop) and
+  `dig` (hold left mouse button AND tap Shift). New tunable `AUTOCLICK_SQUAT_MS`
+  (default 150 = ~3 squats/sec). `release_buttons()` now also sends `keyup Shift_L`, so a
+  stop can never leave the player stuck crouching.
+- Used the explicit X keysym **`Shift_L`**, not xdotool's `shift` modifier alias —
+  verified against `xmodmap -pke` (keycode 50 = Shift_L).
+- Replaced `[ "$mode" = "dig" ] && xdotool mousedown 1` with an explicit `if` block: under
+  `set -e` a bare `test && cmd` list is a footgun when the test is false.
+- Loop is bounded by `MAX_SECONDS` like the other modes — cannot run away.
+- **Edited** `i3/.config/i3/config`: `$mod+F9` = squat, `$mod+F10` = dig. Validated with
+  `i3 -C` (exit 0), reloaded. Script is a stow symlink so the edit was live immediately.
+- xdotool confirmed installed (3.20211022.1) — the user ran the blocked dnf command.
+
+## 2026-09-25 — autoclick: `farm` mode (right-click + squat)
+
+User corrected the request: wanted RIGHT-click combined with Shift, not left.
+
+- **Added** mode `farm` to `scripts/.local/bin/autoclick`: taps Shift on a loop and
+  right-clicks once per cycle. Refactored the squat branch from an `if` into a `case` so
+  squat/dig/farm share one bounded loop.
+- **Design detail**: the right-click fires only while Shift is **released**. Sneaking in
+  Minecraft suppresses block interaction (a sneak-right-click places the held item instead
+  of using the block), so clicking mid-crouch would break Right Click Harvest. Interleaving
+  gives both the growth ticks and clean harvest clicks.
+- **Rebound** `$mod+F10` from `dig` to `farm` in `i3/.config/i3/config`. `dig` is still
+  available from the terminal. Validated with `i3 -C`, reloaded.
+
+## 2026-09-26 — autoclick: squat/farm loop made ~2.4x faster
+
+- **Rewrote** the squat/dig/farm loop in `scripts/.local/bin/autoclick` to use ONE chained
+  `xdotool` invocation per cycle (`keydown Shift_L sleep D keyup Shift_L [click 3] sleep D`)
+  instead of 3 xdotool processes plus 2 shell `sleep` processes. Benchmarked: 10 cycles at
+  60ms took 1.23s chained vs 1.31s unchained — ~3ms/cycle overhead instead of ~11ms.
+- **Lowered** default `AUTOCLICK_SQUAT_MS` 150 → 60. Cycle is now ~123ms ≈ **8 squats/sec**
+  (was ~3.3/sec).
+- **Did NOT go below 60ms on purpose**: Minecraft ticks every 50ms, so a shorter hold risks
+  the sneak toggle landing inside a single tick and being dropped entirely — faster input
+  would yield *fewer* registered squats. Documented the floor in the script header.
+
+## 2026-09-26 — autoclick: farm mode much faster (user override)
+
+I had argued 60ms was the floor because Minecraft ticks every 50ms. User said to make it
+faster anyway — their call, they are the one watching it in game.
+
+- **Lowered** default `AUTOCLICK_SQUAT_MS` 60 → 30.
+- **Decoupled the click rate from the squat rate** — the real bottleneck. Farm mode now
+  fires `click --repeat $CLICKS --delay $CLICK_GAP_MS 3` inside the same chained xdotool
+  call. New knobs: `AUTOCLICK_CLICKS` (default 3), `AUTOCLICK_CLICK_GAP_MS` (default 15).
+- Measured cycle: 108ms → **~9.3 squats/sec and ~27.8 right-clicks/sec**
+  (was 3.3 and 3.3 before today).
+- Note kept for future reference: if squats stop registering, the sneak toggle is landing
+  inside a single 50ms game tick — raise AUTOCLICK_SQUAT_MS back toward 60. The click rate
+  is unaffected by that and can stay high independently.
+
+## 2026-09-26 — Sauce OneBlock: trader/chest economy rebuild (council-designed)
+
+World was maxed (BlockCount 3300, all 7 tiers researched). A 5-seat council reviewed the
+configs and the decompiled jar; the original plan (add tier-7..10) was **abandoned** —
+`WorldManager.load` flags status UPDATED when the saved Tiers list is shorter than the
+config list, and `BlockManager.updateBlock` then places BEDROCK, freezing the world until
+`/neoblock force stop` + `/neoblock force setblock`. Rebuilt the trader/chest economy
+instead, which is hash-stable (tier hash = id + unlock requirements only).
+
+- **Backup**: `config/neoblock.bak-preTraderRebuild/` (92K). Restore = one `cp -r`.
+- **tags.toml**: +3 random pools — `tribute` (20 farm/mob drops), `relic` (8 trip items),
+  `trophy` (14 toys/vanity). `#neoblock:<list>` resolves to ONE random member per trader
+  spawn and works in a trade's result or either cost slot — this is the user's own
+  "random block for diamonds" idea, no mods needed.
+- **trades.toml**: +4 groups — `neo-floor` (spawn guarantee), `neo-lottery` (random-tribute
+  costs), `neo-vault` (priced in soulium_dust), `neo-revived` (13 offers rescued from the
+  dead `[on-research]` blocks).
+- **tier-1..6**: added `%` to offers (only **4 of 137** lines had one before, which is why
+  every trader looked identical). Fixed a shipped bug: `tier-2.toml` referenced
+  `trade:most-saplings`, which is not defined in trades.toml → repointed to `saplings-1`.
+  tier-6 gained the four new groups, with `neo-floor` left unconditional because NeoBlock
+  spawns no trader at all if every offer fails its roll.
+- **chests.toml**: `casual-chest` pool widened 5 → **36** items (min/max kept 2-4, so the
+  variety comes from the pool). It was the ONLY chest still reachable — tier1/tier2/tier4
+  chests are `starting-blocks`, which fire once at unlock and never again. Added `neo-lucky`.
+- **Chests returned to rotation**: `neo-lucky` → tier-3 blocks, `tier4-chest` → tier-4
+  (restores blaze rods / ender pearls), `casual-chest` → tier-5, all at weight 2.
+- **config.toml**: +2 global `[on-every-N-blocks]` streams (2000, and 5000 offset 2500).
+  A global event carrying `trades` spawns its OWN trader under a different entity tag, so
+  it bypasses the one-trader-at-a-time check — an endless trader stream with no tier ladder.
+- **Currency correction**: council priced jackpots in `mysticalagriculture:soulium_ore`, but
+  the loot table shows that block only drops itself under Silk Touch — normal mining yields
+  `soulium_dust`. Repriced in dust, else the trades would have been unpayable.
+- **Verified**: all 20 TOML files parse; 0 missing trade-group refs; 0 missing `#neoblock:`
+  tags; all 6 `[unlock]` blocks byte-identical to backup; tier count still 7.
+  (`tier-template.toml` still fails to parse — ships that way, inert, untouched.)
+
+## 2026-09-26 — Sauce OneBlock: council round 3 fixes (v2)
+
+Second backup before changes: `config/neoblock.bak-v1/` (v1 build);
+`config/neoblock.bak-preTraderRebuild/` is still the original.
+
+Four real defects found by auditing the SHIPPED build, all verified independently:
+
+- **Chest truncation (worst).** The chest roll walks its item list **in order and stops at
+  `max`**, so the 9 rare items I appended to the bottom of `casual-chest` were being
+  truncated away. Simulated 200k rolls: diamond fired **2.00%** at max=4 vs 3.94% at max=8.
+  Fixed by **reordering rares to the top** rather than raising max — the Slot Machine seat
+  wanted max=8, but the Economy and Burnout seats showed that inflates supply. Reordering
+  fixes the bug at zero inflation. Verified after: diamond 4.01%, e-gapple 1.00%.
+- **Chest spam.** Measured 106 chests/hour. Removed my own tier-5 `casual-chest` addition
+  (it was nearly half the total) → **67/hr**.
+- **Trader offer wall.** `tier-template.toml:36` — trades are the **union of every enabled
+  tier**, and all 7 are enabled, so the v1 percentages stacked to ~10.7 expected offers,
+  10.6 of them commons. Lowered per-tier percentages to land near 6 offers.
+- **Vault arbitrage.** Three of four `neo-vault` items were purchasable elsewhere for
+  diamonds — which Mystical Agriculture grows as a crop — so soulium dust bought nothing.
+  Removed the duplicate shulker-shell and trophy lines, moved budding_amethyst in, repriced
+  `tier-5`'s trims offer in dust. `neo-vault` is now 3 dust-only lines.
+- Also: XP-bottles-for-cobblestone uses 6-10 → 2-3 (~110/hr off a free resource);
+  wind_charge uses 32-64 → 4-8; `[on-every-2000-blocks]` → 3000 (2000 = exactly two per
+  60-min session, a learnable metronome); tribute pool lost `ink_sac` (squid need an ocean
+  biome; void platform) and `red_mushroom` (still vended 1x elsewhere) for copper_ingot/flint.
+- **Elytra** retuned to one offer per **3.9 h** (was 8.8) — stream `neo-vault` 35%→60%,
+  tier-6 6%→10%, vault narrowed to 3 lines.
+
+**Refuted two council claims by checking the save**: `doMobSpawning` is **true** in
+level.dat (tier-1's on-unlock set it), and the world's Nether is
+`generator.type=minecraft:noise / settings=minecraft:nether` — a REAL Nether, not the
+`no_nether` void preset the agent assumed. So blaze rods / ghast tears / magma cream are
+obtainable and the `relic` pool is sound. (DIM-1 and DIM1 have 0 region files — never visited.)
+
+Own bug caught mid-edit: `line.split("#")` split on the `#` in `#neoblock:trims` and
+destroyed tier-5's trims offer; repaired and repriced.
+
+Validation after: 0 parse failures, 0 missing trade groups, 0 missing tags.
+
+## 2026-09-26 — Sauce OneBlock: villagers, spawn eggs, spawners (v3)
+
+Backup before this change: `config/neoblock.bak-v2/`.
+
+- **Found the gap**: the traders sell 18 animals and **zero villagers**, and a void overworld
+  has no villages — so villagers (and therefore librarian Silk Touch, which is what picks up
+  a spawner) were unobtainable except by curing a zombie villager.
+- **tags.toml**: +`eggs` pool, 14 hostile spawn eggs. Verified against Apothic Spawners'
+  `data/apothic_spawners/tags/entity_type/blacklisted_from_spawners.json` — only `warden`,
+  `elder_guardian` and `#c:bosses` are banned, so passive mobs would work too; left them out
+  deliberately since the trader already sells the animals and breeding is free.
+- **trades.toml**: +`neo-menagerie` — villager (16-24 emerald + 2-4 relic), random spawn egg
+  (4-6 soulium dust), spawner (12-16 dust + 2-4 relic). All dust-priced so the autoclicker
+  cannot rush them.
+- Wired at 12% on tier-6 and 40% on the 5000-block stream → any one line offered roughly
+  once per 3.9 hours.
+- Validated: 0 parse failures, 0 missing groups, 0 missing tags.
+
+## 2026-09-26 — Sauce OneBlock: FallingTree paxel fix + 3 mods from Oneblock Ultimate (45 → 51)
+
+- **FIXED: paxel would not fell trees.** Only Paxels ships correct tags (its items ARE in
+  `minecraft:tags/item/axes.json`), but FallingTree's `isValidTool` references
+  `net.minecraft.world.item.AxeItem` — it checks the item CLASS, not the tag, so a custom
+  paxel class never matches. Whitelisted 18 tools in `config/fallingtree.json`
+  (`tools.allowed`): 6 vanilla axes + 6 paxels + 6 Mystical Agriculture axes, so it keeps
+  working as he upgrades. Backup: `fallingtree.json.bak`.
+- **Compared his 45-mod pack against Oneblock Ultimate** (79 mods, NeoForge 1.21.1) after he
+  challenged whether I'd really looked for OneBlock MODPACKS — I had not; I'd only searched
+  mods and datapacks. Correction owned. Result: his pack is better for his goals — theirs
+  has no Mystical Agriculture, no Apothic Spawners, no Veinminer, no Sophisticated
+  Backpacks/Storage, and much of its 79 is libraries + performance + things he'd never use
+  (voice chat, a dog mod, shaders — bad on a 512MB-VRAM iGPU).
+- **Took 3 worth stealing**, all sha512-verified from Modrinth:
+  `ironfurnaces 4.3.2` (tiered furnaces — he explicitly asked for this weeks-equivalent ago),
+  `Controlling 19.0.5` + `Searchables` (search box in the Controls menu — he has hit keybind
+  conflicts repeatedly: B vs waypoints, `'` vs grave, F7 double-bound),
+  `enchdesc 21.1.11` + `prickle` + `bookshelf` (enchantment tooltips).
+- **Verified**: 51 jars, 0 missing required dependencies.
+- Also noted for later: Xaero's Minimap 26.4.2 → 26.5.0 and World Map 1.45.0 → 1.46.0 are
+  available; declined for now (point releases, mid-session nag only).
+
+## 2026-10-04 — Google Takeout disk cleanup
+- **Freed space for Takeout downloads**: deleted stale `takeout-20261003T094137Z-1-001.eUiJOUJQ.zip.part`
+  (8.5 GB, abandoned first attempt — 001 already complete as `001(1).zip`) + its 0-byte `001.zip`
+  placeholder; emptied Trash via `gio trash --empty` (33 GB, old Sept 28 2 GB-split Takeout zips).
+  `/home` went 104 GB → 136 GB free. Active 002/003/004 downloads left untouched.
+
+## 2026-10-04 — Permission rule cleanup
+- **Removed wildcard grep allow rule** from `.claude/settings.local.json` (`Bash(grep -r "screenshot\|Pictures\|save.*path" ...)`):
+  the regex `*` was parsed as a permission wildcard, triggering Claude Code's mid-command wildcard warning. Stale one-off rule, 51 → 50 entries.
+
+## 2026-10-04 — Home dir bash temp cleanup + zsh history tuning
+- **Deleted 1,513 `~/.bash_history-*.tmp`** leftovers (1,379 from the 2025-11-16 16:27 runaway-fork
+  event — `fork rejected by pids controller`, only occurrence in the kernel logs; rest trickled in until
+  2026-03-11 when zsh became the shell). Real `~/.bash_history` kept. Bash config untouched.
+- **zsh/.zshrc history**: HISTSIZE/SAVEHIST 10000 → 100000; HIST_IGNORE_DUPS → HIST_IGNORE_ALL_DUPS +
+  HIST_SAVE_NO_DUPS + HIST_FIND_NO_DUPS; added EXTENDED_HISTORY; `alias history='history -i 1'`
+  (zsh's bare `history` only prints the last 16). `zsh -n` ok, alias verified.
