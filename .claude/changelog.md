@@ -981,3 +981,20 @@ Backup before this change: `config/neoblock.bak-v2/`.
   HIST_SAVE_NO_DUPS + HIST_FIND_NO_DUPS; added EXTENDED_HISTORY; `alias history='history -i 1'`
   (zsh's bare `history` only prints the last 16). `zsh -n` ok, alias verified.
 - Committed as `da46ff0` (zsh/.zshrc + changelog only; other pending changes left unstaged).
+- **Started Takeout extraction** (user-approved): 5 zips (~203 GB) → `~/Pictures/GooglePhotos/`,
+  one at a time with `unzip -n`; each zip deleted only after a clean (exit 0) extract. Runs in background.
+- **Takeout extraction done**: all 5 zips → 21,263 files, each verified (count + size) then deleted.
+  First attempt hit unzip's false-positive "zip bomb" check on zip64 (exit 12, nothing deleted) —
+  rerun with `UNZIP_DISABLE_ZIPBOMB_DETECTION=TRUE`. Installed `perl-Image-ExifTool` (user ran dnf).
+- Moved Google Photos trash (`Lixeira`) → `~/Pictures/GooglePhotos-deleted` (user: keep deleted ones separate).
+- **Started date/GPS fix** on `~/Pictures/GooglePhotos` via exiftool (in-place, `-overwrite_original`):
+  writes Takeout `photoTakenTime` (Europe/Lisbon local for images, UTC for QuickTime) + GPS only where
+  missing (6,551 dates, 77 GPS of 10,286 media); never overwrites existing camera dates. Sets file mtime too.
+- **Date/GPS fix done**: 10,284/10,286 media now dated, exiftool errors=1. Two files corrupt at source
+  (`f10582032.jpg` undecodable, `f99718848.mp4` bad NAL units — remux failed, temp removed); jpg restored
+  byte-identical after a metadata-rebuild attempt shrank it. Both → `~/Pictures/GooglePhotos-broken/`.
+- **Final layout**: `~/Pictures/GooglePhotos/<album or year>/` (10,284 media, 0 json, 203 GB, ready to
+  upload); all .json → `~/Pictures/GooglePhotos-json/` (10,283); counts reconcile to 21,263 extracted.
+- **Flattened `~/Pictures/GooglePhotos/`** into one folder (user request, for select-all upload): 9,580 files,
+  no subfolders. 704 byte-identical album copies → `~/Pictures/GooglePhotos-duplicates/`; 5 same-name/different
+  WhatsApp photos renamed `_2`. 9,580 + 704 = 10,284 ✓.
