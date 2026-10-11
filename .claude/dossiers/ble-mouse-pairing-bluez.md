@@ -1,5 +1,5 @@
 ---
-status: active — owner: rules/bluetooth.md
+status: promoted → rules/bluetooth.md (owner)
 created: 2026-04-25
 ---
 

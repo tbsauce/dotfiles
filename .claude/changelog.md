@@ -998,3 +998,5 @@ Backup before this change: `config/neoblock.bak-v2/`.
 - **Flattened `~/Pictures/GooglePhotos/`** into one folder (user request, for select-all upload): 9,580 files,
   no subfolders. 704 byte-identical album copies → `~/Pictures/GooglePhotos-duplicates/`; 5 same-name/different
   WhatsApp photos renamed `_2`. 9,580 + 704 = 10,284 ✓.
+- 2026-10-05 16:52 config: added attribution {commit:"",pr:""} to claude/.claude/settings.json — disables Claude co-author/PR trailer
+- 2026-10-11 /reflect: fixed BLE dossier status header (promoted) + backfilled its archive tombstone; rewrote `command`-prefix lesson to cover `cd`/zoxide (re 2026-10-11); promoted both GRUB lessons → new .claude/rules/grub.md (paths: grub/**), tombstoned; archived "copy skills verbatim" lesson (captured in skill engine)
